@@ -160,7 +160,44 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Th': 'Qui',
             'Fr': 'Sex',
             'Sa': 'Sab',
-            'Su': 'Dom'
+            'Su': 'Dom',
+            'Your personal cookbook.': 'Seu livro de receitas pessoal.',
+            'Search recipes...': 'Pesquisar receitas...',
+            'No recipes yet': 'Nenhuma receita ainda',
+            'Add your first recipe — ingredients, steps, timing, everything in one place.': 'Adicione sua primeira receita — ingredientes, passos, tempo, tudo em um lugar.',
+            '+ Adicionar Recipe': '+ Adicionar Receita',
+            'Recipe': 'Receita',
+            'Reset': 'Reiniciar',
+            '+ Adicionar limit': '+ Adicionar limite',
+            'limit': 'limite',
+            'TOTAL': 'TOTAL',
+            'OK': 'OK',
+            'WARNING': 'AVISO',
+            'EXCEEDED': 'EXCEDIDO',
+            'No limits set up yet': 'Nenhum limite configurado ainda',
+            'Tap + Adicionar limit to track daily consumption of anything — coffee, alcohol, screen time, snacks, whatever you want to monitor.': 'Toque em + Adicionar limite para rastrear o consumo diário de qualquer coisa — café, álcool, tempo de tela, lanches, o que você deseja monitorar.',
+            'Health & Fitness': 'Saúde e Fitness',
+            'Fitness': 'Fitness',
+            'Health': 'Saúde',
+            'Hobbies & Creative': 'Hobbies e Criativo',
+            'Streaming': 'Transmissão',
+            'Professional': 'Profissional',
+            'Invest': 'Investir',
+            'My Responsabilidades': 'Minhas Responsabilidades',
+            'Complete list of life areas. Click any item to open it, or add new ones per category.': 'Lista completa de áreas da vida. Clique em qualquer item para abri-lo ou adicione novos por categoria.',
+            'House Hunt': 'Caça Casa',
+            'Lost & Missing': 'Perdido e Desaparecido',
+            'Family': 'Família',
+            'Sexiends': 'Sexiends',
+            'Praxe': 'Praxe',
+            'Home & Life': 'Casa e Vida',
+            'Personal': 'Pessoal',
+            'Daily Focus': 'Foco Diário',
+            '+ New': '+ Novo',
+            '+ Adicionar responsability': '+ Adicionar responsabilidade',
+            'Adicionar responsability': 'Adicionar responsabilidade',
+            'My': 'Meu',
+            'Responsabilidades': 'Responsabilidades'
         };
         const TRANSLATIONS = {
             en: {
@@ -234,12 +271,12 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
 
             if (_appLanguage !== 'pt') return;
 
-            // Recursively translate ALL text nodes in the DOM
+            const sorted = Object.keys(PT_STRINGS).sort((a, b) => b.length - a.length);
+
+            // Recursively translate ALL text in DOM
             function translateNode(node) {
                 if (node.nodeType === Node.TEXT_NODE) {
                     let text = node.textContent;
-                    // Try longest matches first for multi-word phrases
-                    const sorted = Object.keys(PT_STRINGS).sort((a, b) => b.length - a.length);
                     for (let key of sorted) {
                         if (text.includes(key)) {
                             text = text.split(key).join(PT_STRINGS[key]);
@@ -249,6 +286,47 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                         node.textContent = text;
                     }
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Also try translating element's direct textContent (for simple elements)
+                    if (node.children.length === 0 && node.textContent) {
+                        let text = node.textContent;
+                        for (let key of sorted) {
+                            if (text.includes(key)) {
+                                text = text.split(key).join(PT_STRINGS[key]);
+                            }
+                        }
+                        if (text !== node.textContent) {
+                            node.textContent = text;
+                        }
+                    }
+                    // Translate title and aria-label attributes
+                    if (node.title) {
+                        let title = node.title;
+                        for (let key of sorted) {
+                            if (title.includes(key)) {
+                                title = title.split(key).join(PT_STRINGS[key]);
+                            }
+                        }
+                        if (title !== node.title) node.title = title;
+                    }
+                    if (node.getAttribute && node.getAttribute('aria-label')) {
+                        let label = node.getAttribute('aria-label');
+                        for (let key of sorted) {
+                            if (label.includes(key)) {
+                                label = label.split(key).join(PT_STRINGS[key]);
+                            }
+                        }
+                        node.setAttribute('aria-label', label);
+                    }
+                    // Translate placeholder
+                    if (node.placeholder) {
+                        let ph = node.placeholder;
+                        for (let key of sorted) {
+                            if (ph.includes(key)) {
+                                ph = ph.split(key).join(PT_STRINGS[key]);
+                            }
+                        }
+                        if (ph !== node.placeholder) node.placeholder = ph;
+                    }
                     // Process child nodes
                     for (let child of Array.from(node.childNodes)) {
                         translateNode(child);
