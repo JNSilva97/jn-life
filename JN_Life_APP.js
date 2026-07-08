@@ -18,7 +18,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
         // ── LANGUAGE/I18N ──────────────────────────────────────────────────────
         let _appLanguage = localStorage.getItem('appLanguage') || 'en';
 
-        // Comprehensive PT translations — covers all visible UI strings
+        // Comprehensive PT translations — ALL visible UI strings
         const PT_STRINGS = {
             'Schedule': 'Cronograma',
             'TODAY': 'HOJE',
@@ -43,6 +43,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Clear Blocks': 'Limpar Blocos',
             'Save Data': 'Guardar Dados',
             'Load Data': 'Carregar Dados',
+            'Full Reset — clear all app data': 'Reset Completo — limpar todos os dados do aplicativo',
             'focus': 'foco',
             'tasks': 'tarefas',
             'Done': 'Pronto',
@@ -54,12 +55,11 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Weekly goal': 'Objetivo semanal',
             'No blocks yet': 'Nenhum bloco ainda',
             'Add your first block': 'Adicione seu primeiro bloco',
+            'Break your day into time blocks — sleep, work, gym, meals, wind-down. Each block holds its own tasks.': 'Divida seu dia em blocos de tempo — dormir, trabalho, academia, refeições, desaceleração. Cada bloco contém suas próprias tarefas.',
             'Limits': 'Limites',
             'Recipes': 'Receitas',
             'Responsibilities': 'Responsabilidades',
             'Resp.': 'Resp.',
-            'Responsibilities': 'Responsabilidades',
-            'Responsibilities': 'Responsabilidades',
             'Break your day into time blocks': 'Divida seu dia em blocos de tempo',
             'Add a schedule block': 'Adicionar um bloco de cronograma',
             'Bedroom': 'Quarto',
@@ -93,7 +93,6 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Alcohol': 'Álcool',
             'Check & update balances': 'Verificar e atualizar saldos',
             'View all transactions': 'Ver todas as transações',
-            'No blocks yet': 'Nenhum bloco ainda',
             'Break your day': 'Divida seu dia',
             'R1': 'R1',
             'R2': 'R2',
@@ -123,7 +122,45 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Subtasks': 'Subtarefas',
             'Completed': 'Concluído',
             'Pending': 'Pendente',
-            'In Progress': 'Em progresso'
+            'In Progress': 'Em progresso',
+            'January': 'Janeiro',
+            'February': 'Fevereiro',
+            'March': 'Março',
+            'April': 'Abril',
+            'May': 'Maio',
+            'June': 'Junho',
+            'July': 'Julho',
+            'August': 'Agosto',
+            'September': 'Setembro',
+            'October': 'Outubro',
+            'November': 'Novembro',
+            'December': 'Dezembro',
+            'Jan': 'Jan',
+            'Feb': 'Fev',
+            'Mar': 'Mar',
+            'Apr': 'Abr',
+            'May': 'Mai',
+            'Jun': 'Jun',
+            'Jul': 'Jul',
+            'Aug': 'Ago',
+            'Sep': 'Set',
+            'Oct': 'Out',
+            'Nov': 'Nov',
+            'Dec': 'Dez',
+            'Monday': 'Segunda',
+            'Tuesday': 'Terça',
+            'Wednesday': 'Quarta',
+            'Thursday': 'Quinta',
+            'Friday': 'Sexta',
+            'Saturday': 'Sábado',
+            'Sunday': 'Domingo',
+            'Mo': 'Seg',
+            'Tu': 'Ter',
+            'We': 'Qua',
+            'Th': 'Qui',
+            'Fr': 'Sex',
+            'Sa': 'Sab',
+            'Su': 'Dom'
         };
         const TRANSLATIONS = {
             en: {
@@ -195,40 +232,31 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             const sel = document.getElementById('langSelect');
             if (sel) sel.value = _appLanguage;
 
-            if (_appLanguage !== 'pt') return; // Only translate PT for now
+            if (_appLanguage !== 'pt') return;
 
-            // Translate all text nodes in the DOM
-            const walker = document.createTreeWalker(
-                document.body,
-                NodeFilter.SHOW_TEXT,
-                null,
-                false
-            );
-
-            let node;
-            while (node = walker.nextNode()) {
-                const original = node.textContent;
-                const trimmed = original.trim();
-
-                // Skip if empty or only whitespace
-                if (!trimmed || trimmed.length < 2) continue;
-
-                // Skip if it's a number or special characters only
-                if (/^[\d\s\-:\/,\.]*$/.test(trimmed)) continue;
-
-                // Direct exact match
-                if (PT_STRINGS[trimmed]) {
-                    node.textContent = PT_STRINGS[trimmed];
-                    continue;
-                }
-
-                // Try matching with trimmed spaces but preserving leading/trailing
-                const leadSpace = original.match(/^\s*/)[0];
-                const tailSpace = original.match(/\s*$/)[0];
-                if (PT_STRINGS[trimmed]) {
-                    node.textContent = leadSpace + PT_STRINGS[trimmed] + tailSpace;
+            // Recursively translate ALL text nodes in the DOM
+            function translateNode(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    let text = node.textContent;
+                    // Try longest matches first for multi-word phrases
+                    const sorted = Object.keys(PT_STRINGS).sort((a, b) => b.length - a.length);
+                    for (let key of sorted) {
+                        if (text.includes(key)) {
+                            text = text.split(key).join(PT_STRINGS[key]);
+                        }
+                    }
+                    if (text !== node.textContent) {
+                        node.textContent = text;
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Process child nodes
+                    for (let child of Array.from(node.childNodes)) {
+                        translateNode(child);
+                    }
                 }
             }
+
+            translateNode(document.body);
         }
 
         // Load saved state
