@@ -23873,6 +23873,7 @@ window.switchFitnessTab = switchFitnessTab;
             el.style.display = name ? 'block' : 'none';
         }
         async function _fsaInitStatus() {
+            if (_isNativeApp()) return; // file links don't exist in the native app
             try {
                 const h = await _fsaLoadHandle();
                 if (h) _fsaUpdateStatus(h.name);
@@ -23894,10 +23895,43 @@ window.switchFitnessTab = switchFitnessTab;
             return { backup, count };
         }
 
+        // True when running inside the Capacitor native shell (Android/iOS app)
+        function _isNativeApp() {
+            try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+            catch(e) { return false; }
+        }
+
+        // Native save: write the backup to app cache, then open the Android/iOS
+        // share sheet so the user saves it to Files / Drive / sends it anywhere.
+        async function _capSaveBackup(backup, count) {
+            const P = window.Capacitor.Plugins;
+            const fname = 'jn-life-data.json';
+            await P.Filesystem.writeFile({
+                path: fname,
+                data: JSON.stringify(backup, null, 2),
+                directory: 'CACHE',
+                encoding: 'utf8'
+            });
+            const { uri } = await P.Filesystem.getUri({ path: fname, directory: 'CACHE' });
+            await P.Share.share({ title: 'JN Life backup', files: [uri] });
+            showToast(`💾 Backup ready (${count} stores)`, '#34d399');
+        }
+
         // Save to the linked file (or pick a new one the first time)
         async function saveDataFile() {
             const { backup, count } = _buildBackup();
             if (!count) { showToast('Nothing to save yet.', '#f87171'); return; }
+
+            // Native app: the File System Access API is broken inside WebView —
+            // use the native share sheet instead.
+            if (_isNativeApp()) {
+                try { await _capSaveBackup(backup, count); }
+                catch(err) {
+                    if (err && err.message && /cancel/i.test(err.message)) return; // user closed share sheet
+                    showToast('Save failed: ' + (err && err.message || err), '#f87171');
+                }
+                return;
+            }
 
             if (!window.showSaveFilePicker) {
                 // Fallback for browsers that don't support FSA (Firefox, etc.)
@@ -23922,14 +23956,20 @@ window.switchFitnessTab = switchFitnessTab;
                 _fsaUpdateStatus(handle.name);
                 showToast(`💾 Saved to ${handle.name} (${count} stores)`, '#34d399');
             } catch(err) {
-                if (err.name !== 'AbortError') showToast('Save failed: ' + err.message, '#f87171');
+                if (err.name === 'AbortError') return;
+                // Stale/unusable file link (moved, deleted, or unsupported here) —
+                // unlink it and fall back to a plain download so the save still happens.
+                try { await _fsaSaveHandle(null); } catch(e2) {}
+                _fsaUpdateStatus(null);
+                exportAllData();
             }
         }
 
         // Load from a picked file (always shows file picker so you can choose any file)
         async function loadDataFile() {
-            if (!window.showOpenFilePicker) {
-                // Fallback for browsers that don't support FSA
+            if (_isNativeApp() || !window.showOpenFilePicker) {
+                // Native app or browsers without FSA: use the classic file input,
+                // which opens the platform's standard file picker.
                 importBackupFile(); return;
             }
             try {
