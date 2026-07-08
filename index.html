@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="JN_Life_APP.css?v=20260702i">
+    <link rel="stylesheet" href="JN_Life_APP.css?v=20260702j">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#020817">
     <link rel="apple-touch-icon" href="icon.png">
@@ -30,24 +30,34 @@
     <div class="tabs">
         <button class="tab active" onclick="switchTab(event,'schedule')">
             <span class="tab-emoji">📅</span>
-            <span class="tab-label">Schedule</span>
+            <span class="tab-label"><span id="tab-schedule-label">Schedule</span></span>
         </button>
         <button class="tab" onclick="switchTab(event,'responsabilidades')">
             <span class="tab-emoji">📋</span>
-            <span class="tab-label">Resp.</span>
+            <span class="tab-label"><span id="tab-resp-label">Resp.</span></span>
         </button>
         <button class="tab" onclick="switchTab(event,'limits')">
             <span class="tab-emoji">⚠️</span>
-            <span class="tab-label">Limits</span>
+            <span class="tab-label"><span id="tab-limits-label">Limits</span></span>
         </button>
         <button class="tab" onclick="switchTab(event,'recipes')">
             <span class="tab-emoji">🍳</span>
-            <span class="tab-label">Recipes</span>
+            <span class="tab-label"><span id="tab-recipes-label">Recipes</span></span>
         </button>
         <!-- clock lives here — part of the grid, never overlaps -->
-        <div class="nav-clock-cell">
-            <div class="nav-clock-time live-clock" id="liveClock">--:--</div>
-            <div class="nav-clock-date" id="liveDateBadge">🔴 ...</div>
+        <div class="nav-clock-cell" style="display:flex;align-items:center;gap:8px;">
+            <div style="text-align:right;">
+                <div class="nav-clock-time live-clock" id="liveClock">--:--</div>
+                <div class="nav-clock-date" id="liveDateBadge">🔴 ...</div>
+            </div>
+            <!-- Language selector -->
+            <select id="langSelect" onchange="setLanguage(this.value)" style="
+                width:50px;height:36px;border-radius:8px;border:1px solid rgba(251,191,36,0.3);
+                background:rgba(251,191,36,0.08);color:#fbbf24;font-weight:700;cursor:pointer;
+                font-size:0.8em;padding:4px;font-family:'Outfit',sans-serif;">
+                <option value="en" style="background:#020817;color:#e2e8f0;">EN</option>
+                <option value="pt" style="background:#020817;color:#e2e8f0;">PT</option>
+            </select>
         </div>
     </div>
 
@@ -3842,7 +3852,7 @@
 
     </div>
 
-<script src="JN_Life_APP.js?v=20260702i"></script>
+<script src="JN_Life_APP.js?v=20260702j"></script>
 
         <!-- JUMP TO NOW BUTTON -->
         <button class="jump-now-btn hidden" id="jumpNowBtn" onclick="jumpToNow()">

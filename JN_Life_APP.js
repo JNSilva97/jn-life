@@ -15,6 +15,66 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
         const colorTagSm = c=>`font-size:0.68em;font-weight:800;padding:2px 7px;border-radius:99px;background:${c}18;color:${c};border:1px solid ${c}33`;
         const chk=(c,done)=>`width:20px;height:20px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#000;transition:all 0.2s;border:2px solid ${done?c:'rgba(255,255,255,0.15)'};background:${done?c:'transparent'}`;
 
+        // ── LANGUAGE/I18N ──────────────────────────────────────────────────────
+        let _appLanguage = localStorage.getItem('appLanguage') || 'en';
+        const TRANSLATIONS = {
+            en: {
+                today: 'TODAY',
+                schedule: 'SCHEDULE',
+                resp: 'RESP',
+                limits: 'LIMITS',
+                recipes: 'RECIPES',
+                saveData: 'Save Data',
+                loadData: 'Load Data',
+                focus: 'focus',
+                tasks: 'tasks',
+                done: 'Done',
+                cancel: 'Cancel',
+                delete: 'Delete',
+                edit: 'Edit',
+                add: 'Add',
+                close: 'Close'
+            },
+            pt: {
+                today: 'HOJE',
+                schedule: 'CRONOGRAMA',
+                resp: 'RESP',
+                limits: 'LIMITES',
+                recipes: 'RECEITAS',
+                saveData: 'Guardar Dados',
+                loadData: 'Carregar Dados',
+                focus: 'foco',
+                tasks: 'tarefas',
+                done: 'Pronto',
+                cancel: 'Cancelar',
+                delete: 'Eliminar',
+                edit: 'Editar',
+                add: 'Adicionar',
+                close: 'Fechar'
+            }
+        };
+        function _(key) { return (TRANSLATIONS[_appLanguage] || TRANSLATIONS.en)[key] || key; }
+        function setLanguage(lang) {
+            _appLanguage = lang;
+            localStorage.setItem('appLanguage', lang);
+            _updateLanguageUI();
+        }
+        function _updateLanguageUI() {
+            const sel = document.getElementById('langSelect');
+            if (sel) sel.value = _appLanguage;
+            // Update visible strings
+            const updates = {
+                'tab-schedule-label': _appLanguage === 'pt' ? 'Cronograma' : 'Schedule',
+                'tab-resp-label': _appLanguage === 'pt' ? 'Resp.' : 'Resp.',
+                'tab-limits-label': _appLanguage === 'pt' ? 'Limites' : 'Limits',
+                'tab-recipes-label': _appLanguage === 'pt' ? 'Receitas' : 'Recipes'
+            };
+            Object.entries(updates).forEach(([id, text]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text;
+            });
+        }
+
         // Load saved state
         let tasks = JSON.parse(localStorage.getItem('wednesdayTasks')) || {};
         let focusSkipped = JSON.parse(localStorage.getItem('focusSkipped') || '{}');
@@ -15965,6 +16025,9 @@ function initScheduleFocusCardDnD() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+            // Initialize language UI
+            _updateLanguageUI();
+
             // Daily reset check
             checkDailyReset();
 
@@ -23904,17 +23967,27 @@ window.switchFitnessTab = switchFitnessTab;
         // Native save: write the backup to app cache, then open the Android/iOS
         // share sheet so the user saves it to Files / Drive / sends it anywhere.
         async function _capSaveBackup(backup, count) {
-            const P = window.Capacitor.Plugins;
-            const fname = 'jn-life-data.json';
-            await P.Filesystem.writeFile({
-                path: fname,
-                data: JSON.stringify(backup, null, 2),
-                directory: 'CACHE',
-                encoding: 'utf8'
-            });
-            const { uri } = await P.Filesystem.getUri({ path: fname, directory: 'CACHE' });
-            await P.Share.share({ title: 'JN Life backup', files: [uri] });
-            showToast(`💾 Backup ready (${count} stores)`, '#34d399');
+            try {
+                if (!window.Capacitor || !window.Capacitor.Plugins) throw new Error('Capacitor not available');
+                const { Filesystem, Share } = window.Capacitor.Plugins;
+                if (!Filesystem || !Share) throw new Error('Filesystem or Share plugin not loaded');
+
+                const fname = 'jn-life-data.json';
+                const data = JSON.stringify(backup, null, 2);
+
+                // Write to cache directory
+                await Filesystem.writeFile({ path: fname, data, directory: 'CACHE', encoding: 'utf8' });
+
+                // Get URI and share
+                const result = await Filesystem.getUri({ path: fname, directory: 'CACHE' });
+                const uri = result.uri;
+                if (!uri) throw new Error('Failed to get file URI');
+
+                await Share.share({ title: 'JN Life backup', files: [uri] });
+                showToast(`💾 Backup ready (${count} stores)`, '#34d399');
+            } catch(err) {
+                throw new Error(err.message || err);
+            }
         }
 
         // Save to the linked file (or pick a new one the first time)
