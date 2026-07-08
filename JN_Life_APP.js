@@ -33,7 +33,19 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                 delete: 'Delete',
                 edit: 'Edit',
                 add: 'Add',
-                close: 'Close'
+                close: 'Close',
+                dailyHabits: 'DAILY HABITS',
+                focusAreas: 'FOCUS AREAS',
+                special: 'SPECIAL',
+                pinned: 'PINNED',
+                editSchedule: 'Edit Schedule',
+                importTasks: 'Import Tasks',
+                templates: 'Templates',
+                clearBlocks: 'Clear Blocks',
+                resetDay: 'Reset Day',
+                weeklyGoal: 'Weekly goal',
+                noBlocks: 'No blocks yet',
+                addBlock: 'Add your first block'
             },
             pt: {
                 today: 'HOJE',
@@ -50,29 +62,75 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                 delete: 'Eliminar',
                 edit: 'Editar',
                 add: 'Adicionar',
-                close: 'Fechar'
+                close: 'Fechar',
+                dailyHabits: 'HÁBITOS DIÁRIOS',
+                focusAreas: 'ÁREAS DE FOCO',
+                special: 'ESPECIAL',
+                pinned: 'FIXADO',
+                editSchedule: 'Editar Cronograma',
+                importTasks: 'Importar Tarefas',
+                templates: 'Modelos',
+                clearBlocks: 'Limpar Blocos',
+                resetDay: 'Reiniciar Dia',
+                weeklyGoal: 'Objetivo semanal',
+                noBlocks: 'Nenhum bloco ainda',
+                addBlock: 'Adicione seu primeiro bloco'
             }
         };
         function _(key) { return (TRANSLATIONS[_appLanguage] || TRANSLATIONS.en)[key] || key; }
         function setLanguage(lang) {
             _appLanguage = lang;
             localStorage.setItem('appLanguage', lang);
-            _updateLanguageUI();
+            location.reload();
         }
         function _updateLanguageUI() {
             const sel = document.getElementById('langSelect');
             if (sel) sel.value = _appLanguage;
-            // Update visible strings
-            const updates = {
-                'tab-schedule-label': _appLanguage === 'pt' ? 'Cronograma' : 'Schedule',
-                'tab-resp-label': _appLanguage === 'pt' ? 'Resp.' : 'Resp.',
-                'tab-limits-label': _appLanguage === 'pt' ? 'Limites' : 'Limits',
-                'tab-recipes-label': _appLanguage === 'pt' ? 'Receitas' : 'Recipes'
-            };
-            Object.entries(updates).forEach(([id, text]) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = text;
-            });
+
+            // Translate all text nodes in the DOM
+            const walker = document.createTreeWalker(
+                document.body,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            const translations = _appLanguage === 'pt' ? {
+                'Schedule': 'Cronograma',
+                'TODAY': 'HOJE',
+                'Today': 'Hoje',
+                'focus': 'foco',
+                'tasks': 'tarefas',
+                'DAILY HABITS': 'HÁBITOS DIÁRIOS',
+                'FOCUS AREAS': 'ÁREAS DE FOCO',
+                'SPECIAL': 'ESPECIAL',
+                'PINNED': 'FIXADO',
+                'Edit Schedule': 'Editar Cronograma',
+                'Import Tasks': 'Importar Tarefas',
+                'Templates': 'Modelos',
+                'Clear Blocks': 'Limpar Blocos',
+                'Reset Day': 'Reiniciar Dia',
+                'Done': 'Pronto',
+                'Cancel': 'Cancelar',
+                'Save Data': 'Guardar Dados',
+                'Load Data': 'Carregar Dados',
+                'Add': 'Adicionar',
+                'Edit': 'Editar',
+                'Delete': 'Eliminar',
+                'Weekly goal': 'Objetivo semanal',
+                'No blocks yet': 'Nenhum bloco ainda',
+                'Add your first block': 'Adicione seu primeiro bloco',
+                'Limits': 'Limites',
+                'Recipes': 'Receitas'
+            } : {};
+
+            let node;
+            while (node = walker.nextNode()) {
+                const text = node.textContent.trim();
+                if (text && translations[text]) {
+                    node.textContent = translations[text];
+                }
+            }
         }
 
         // Load saved state
