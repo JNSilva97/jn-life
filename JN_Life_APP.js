@@ -17,6 +17,114 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
 
         // ── LANGUAGE/I18N ──────────────────────────────────────────────────────
         let _appLanguage = localStorage.getItem('appLanguage') || 'en';
+
+        // Comprehensive PT translations — covers all visible UI strings
+        const PT_STRINGS = {
+            'Schedule': 'Cronograma',
+            'TODAY': 'HOJE',
+            'Today': 'Hoje',
+            'DAILY HABITS': 'HÁBITOS DIÁRIOS',
+            'FOCUS AREAS': 'ÁREAS DE FOCO',
+            'SPECIAL': 'ESPECIAL',
+            'PINNED': 'FIXADO',
+            'Pills': 'Pílulas',
+            'Organize': 'Organizar',
+            'Work': 'Trabalho',
+            'Finance': 'Finanças',
+            'Love': 'Amor',
+            'Music': 'Música',
+            'Empty': 'Vazio',
+            'Reset day': 'Reiniciar dia',
+            'Re-sync blocks': 'Resincronizar blocos',
+            'Reset Day': 'Reiniciar Dia',
+            'Edit Schedule': 'Editar Cronograma',
+            'Import Tasks': 'Importar Tarefas',
+            'Templates': 'Modelos',
+            'Clear Blocks': 'Limpar Blocos',
+            'Save Data': 'Guardar Dados',
+            'Load Data': 'Carregar Dados',
+            'focus': 'foco',
+            'tasks': 'tarefas',
+            'Done': 'Pronto',
+            'Cancel': 'Cancelar',
+            'Delete': 'Eliminar',
+            'Edit': 'Editar',
+            'Add': 'Adicionar',
+            'Close': 'Fechar',
+            'Weekly goal': 'Objetivo semanal',
+            'No blocks yet': 'Nenhum bloco ainda',
+            'Add your first block': 'Adicione seu primeiro bloco',
+            'Limits': 'Limites',
+            'Recipes': 'Receitas',
+            'Responsibilities': 'Responsabilidades',
+            'Resp.': 'Resp.',
+            'Responsibilities': 'Responsabilidades',
+            'Responsibilities': 'Responsabilidades',
+            'Break your day into time blocks': 'Divida seu dia em blocos de tempo',
+            'Add a schedule block': 'Adicionar um bloco de cronograma',
+            'Bedroom': 'Quarto',
+            'Kitchen': 'Cozinha',
+            'Living room': 'Sala',
+            'Gym session': 'Sessão de academia',
+            'Martial Arts': 'Artes Marciais',
+            'Meal': 'Refeição',
+            'Breakfast': 'Café da manhã',
+            'Lunch': 'Almoço',
+            'Dinner': 'Jantar',
+            'Sleep': 'Dormir',
+            'Work session': 'Sessão de trabalho',
+            'Stretch': 'Alongamento',
+            'Relax': 'Relaxar',
+            'Wind down': 'Desaceleração',
+            'Check in': 'Fazer check-in',
+            'Browse': 'Navegar',
+            'Learn': 'Aprender',
+            'Code': 'Código',
+            'Exercise': 'Exercício',
+            'Run': 'Correr',
+            'Bike': 'Bicicleta',
+            'Swim': 'Nadar',
+            'Coffee': 'Café',
+            'Tea': 'Chá',
+            'Water': 'Água',
+            'Smoke': 'Fumar',
+            'Cigarettes': 'Cigarros',
+            'Drink': 'Beber',
+            'Alcohol': 'Álcool',
+            'Check & update balances': 'Verificar e atualizar saldos',
+            'View all transactions': 'Ver todas as transações',
+            'No blocks yet': 'Nenhum bloco ainda',
+            'Break your day': 'Divida seu dia',
+            'R1': 'R1',
+            'R2': 'R2',
+            'R3': 'R3',
+            'None': 'Nenhum',
+            'Projects': 'Projetos',
+            'Tasks': 'Tarefas',
+            'Changelog': 'Histórico de mudanças',
+            'Bug Tracker': 'Rastreador de bugs',
+            'Open': 'Abrir',
+            'Back': 'Voltar',
+            'Search': 'Pesquisar',
+            'Filter': 'Filtro',
+            'Sort': 'Ordenar',
+            'Settings': 'Configurações',
+            'Help': 'Ajuda',
+            'About': 'Sobre',
+            'Version': 'Versão',
+            'Current version': 'Versão atual',
+            'No changelog entries yet': 'Nenhuma entrada de histórico ainda',
+            'log what you ship': 'registre o que você envia',
+            'No tasks yet': 'Nenhuma tarefa ainda',
+            'Add task': 'Adicionar tarefa',
+            'Task': 'Tarefa',
+            'Description': 'Descrição',
+            'Notes': 'Notas',
+            'Subtasks': 'Subtarefas',
+            'Completed': 'Concluído',
+            'Pending': 'Pendente',
+            'In Progress': 'Em progresso'
+        };
         const TRANSLATIONS = {
             en: {
                 today: 'TODAY',
@@ -87,6 +195,8 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             const sel = document.getElementById('langSelect');
             if (sel) sel.value = _appLanguage;
 
+            if (_appLanguage !== 'pt') return; // Only translate PT for now
+
             // Translate all text nodes in the DOM
             const walker = document.createTreeWalker(
                 document.body,
@@ -95,40 +205,28 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                 false
             );
 
-            const translations = _appLanguage === 'pt' ? {
-                'Schedule': 'Cronograma',
-                'TODAY': 'HOJE',
-                'Today': 'Hoje',
-                'focus': 'foco',
-                'tasks': 'tarefas',
-                'DAILY HABITS': 'HÁBITOS DIÁRIOS',
-                'FOCUS AREAS': 'ÁREAS DE FOCO',
-                'SPECIAL': 'ESPECIAL',
-                'PINNED': 'FIXADO',
-                'Edit Schedule': 'Editar Cronograma',
-                'Import Tasks': 'Importar Tarefas',
-                'Templates': 'Modelos',
-                'Clear Blocks': 'Limpar Blocos',
-                'Reset Day': 'Reiniciar Dia',
-                'Done': 'Pronto',
-                'Cancel': 'Cancelar',
-                'Save Data': 'Guardar Dados',
-                'Load Data': 'Carregar Dados',
-                'Add': 'Adicionar',
-                'Edit': 'Editar',
-                'Delete': 'Eliminar',
-                'Weekly goal': 'Objetivo semanal',
-                'No blocks yet': 'Nenhum bloco ainda',
-                'Add your first block': 'Adicione seu primeiro bloco',
-                'Limits': 'Limites',
-                'Recipes': 'Receitas'
-            } : {};
-
             let node;
             while (node = walker.nextNode()) {
-                const text = node.textContent.trim();
-                if (text && translations[text]) {
-                    node.textContent = translations[text];
+                const original = node.textContent;
+                const trimmed = original.trim();
+
+                // Skip if empty or only whitespace
+                if (!trimmed || trimmed.length < 2) continue;
+
+                // Skip if it's a number or special characters only
+                if (/^[\d\s\-:\/,\.]*$/.test(trimmed)) continue;
+
+                // Direct exact match
+                if (PT_STRINGS[trimmed]) {
+                    node.textContent = PT_STRINGS[trimmed];
+                    continue;
+                }
+
+                // Try matching with trimmed spaces but preserving leading/trailing
+                const leadSpace = original.match(/^\s*/)[0];
+                const tailSpace = original.match(/\s*$/)[0];
+                if (PT_STRINGS[trimmed]) {
+                    node.textContent = leadSpace + PT_STRINGS[trimmed] + tailSpace;
                 }
             }
         }
