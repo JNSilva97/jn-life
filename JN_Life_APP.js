@@ -197,7 +197,158 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             '+ Adicionar responsability': '+ Adicionar responsabilidade',
             'Adicionar responsability': 'Adicionar responsabilidade',
             'My': 'Meu',
-            'Responsabilidades': 'Responsabilidades'
+            'Responsabilidades': 'Responsabilidades',
+            'Active': 'Ativo',
+            'Already in Tasks': 'Já em Tarefas',
+            'Morning': 'Manhã',
+            'Afternoon': 'Tarde',
+            'Evening': 'Noite',
+            'Night': 'Noite',
+            'Tomorrow': 'Amanhã',
+            'Yesterday': 'Ontem',
+            'Birthday task already exists': 'Tarefa de aniversário já existe',
+            'Check & update balances': 'Verificar e atualizar saldos',
+            'Check all': 'Verificar tudo',
+            'Choose birthday tasks to add': 'Escolha tarefas de aniversário para adicionar',
+            'Clear': 'Limpar',
+            'Clear Schedule Blocks': 'Limpar Blocos de Cronograma',
+            'Clear all session check-marks for this week?': 'Limpar todas as marcações de sessão desta semana?',
+            'Clear bought items': 'Limpar itens comprados',
+            'Clear cache & delete old files': 'Limpar cache e excluir arquivos antigos',
+            'Completed': 'Concluído',
+            'Delete': 'Eliminar',
+            'Delete Discipline': 'Eliminar Disciplina',
+            'Delete Log': 'Eliminar Log',
+            'Delete Log Entry': 'Eliminar Entrada de Log',
+            'Delete Piece': 'Eliminar Peça',
+            'Delete Project': 'Eliminar Projeto',
+            'Delete Session': 'Eliminar Sessão',
+            'Delete Skill': 'Eliminar Habilidade',
+            'Delete Song': 'Eliminar Música',
+            'Delete contact': 'Eliminar contato',
+            'Delete criteria set': 'Eliminar conjunto de critérios',
+            'Delete listing': 'Eliminar listagem',
+            'Delete project': 'Eliminar projeto',
+            'Delete session': 'Eliminar sessão',
+            'Delete session?': 'Eliminar sessão?',
+            'Delete this appointment? This cannot be undone.': 'Eliminar este compromisso? Isto não pode ser desfeito.',
+            'Delete this day type and all its groups?': 'Eliminar este tipo de dia e todos os seus grupos?',
+            'Delete this group and all its sub-tasks?': 'Eliminar este grupo e todas as suas subtarefas?',
+            'Delete this project and all its tasks?': 'Eliminar este projeto e todas as suas tarefas?',
+            'Delete this sub-task?': 'Eliminar esta subtarefa?',
+            'Edit Recipe': 'Editar Receita',
+            'Edit bug': 'Editar bug',
+            'Edit discipline name': 'Editar nome da disciplina',
+            'Edit entry': 'Editar entrada',
+            'Edit feature': 'Editar recurso',
+            'Edit limit': 'Editar limite',
+            'Edit session name': 'Editar nome da sessão',
+            'Edit task': 'Editar tarefa',
+            'Edit tracked time': 'Editar tempo rastreado',
+            'No URL found — use "Fill from text" to parse copied text.': 'Nenhuma URL encontrada — use "Preencher a partir do texto" para analisar o texto copiado.',
+            'No active liquids with schedules — nothing to sync': 'Nenhum líquido ativo com cronogramas — nada para sincronizar',
+            'No active pills with schedules — nothing to sync': 'Nenhuma pílula ativa com cronogramas — nada para sincronizar',
+            'No description available.': 'Nenhuma descrição disponível.',
+            'No description found yet.': 'Nenhuma descrição encontrada ainda.',
+            'No groups in Every Night': 'Nenhum grupo em Todas as Noites',
+            'No groups in this mode': 'Nenhum grupo neste modo',
+            'No items match this filter.': 'Nenhum item corresponde a este filtro.',
+            'No items yet. Add what you need to buy.': 'Nenhum item ainda. Adicione o que você precisa comprar.',
+            'No matches': 'Nenhuma correspondência',
+            'No matching inventory item found for this buy task.': 'Nenhum item de inventário encontrado para esta tarefa de compra.',
+            'No pills yet. Add one below.': 'Nenhuma pílula ainda. Adicione uma abaixo.',
+            'No recipes to export.': 'Nenhuma receita para exportar.',
+            'No responsibility selected. Choose one from the dropdown above.': 'Nenhuma responsabilidade selecionada. Escolha uma na lista suspensa acima.',
+            'No sessions defined yet.': 'Nenhuma sessão definida ainda.',
+            'No streak yet': 'Nenhum recorde ainda',
+            'No tasks': 'Nenhuma tarefa',
+            'No transactions for that month': 'Nenhuma transação para esse mês',
+            'No upgrades in this status.': 'Nenhuma atualização neste status.',
+            'No upgrades yet. Add ideas, track research, book sessions.': 'Nenhuma atualização ainda. Adicione ideias, rastreie pesquisas, marque sessões.',
+            'No valid recipes found.': 'Nenhuma receita válida encontrada.',
+            'No valid schedule found in this file.': 'Nenhum cronograma válido encontrado neste arquivo.',
+            'None yet': 'Nenhum ainda',
+            'Nothing logged yet. Add items below.': 'Nada registrado ainda. Adicione itens abaixo.',
+            'No hangouts logged yet': 'Nenhuma reunião registrada ainda',
+            'No moments logged yet': 'Nenhum momento registrado ainda',
+            'No ingredients listed for this recipe.': 'Nenhum ingrediente listado para esta receita.',
+            'No steps listed for this recipe.': 'Nenhum passo listado para esta receita.',
+            'No contact linked': 'Nenhum contato vinculado',
+            '— No recipe linked —': '— Nenhuma receita vinculada —',
+            'Choose a responsibility above to see its tasks here.': 'Escolha uma responsabilidade acima para ver suas tarefas aqui.',
+            'No tasks yet. Add tasks inside the responsibility section.': 'Nenhuma tarefa ainda. Adicione tarefas dentro da seção de responsabilidade.',
+            'No groups yet — add one below.': 'Nenhum grupo ainda — adicione um abaixo.',
+            'No accounts yet. Add one below.': 'Nenhuma conta ainda. Adicione uma abaixo.',
+            'No projects yet. Add one below.': 'Nenhum projeto ainda. Adicione um abaixo.',
+            'No subscriptions yet. Add one below.': 'Nenhuma assinatura ainda. Adicione uma abaixo.',
+            'No tasks yet. Add tasks inside the Gym or Martial Arts sections.': 'Nenhuma tarefa ainda. Adicione tarefas dentro das seções Gym ou Martial Arts.',
+            'No tasks yet. Add tasks inside the health sub-sections.': 'Nenhuma tarefa ainda. Adicione tarefas dentro das subseções de saúde.',
+            'Add drill (e.g. Round kick 3×10)': 'Adicionar exercício (ex: Chute redondo 3×10)',
+            'Add exercise (e.g. Bench 4×8)': 'Adicionar exercício (ex: Supino 4×8)',
+            'Add preparation step...': 'Adicionar passo de preparação...',
+            'Add research task for this criteria set': 'Adicionar tarefa de pesquisa para este conjunto de critérios',
+            'Add task to ask for money': 'Adicionar tarefa para pedir dinheiro',
+            'Add task to pay': 'Adicionar tarefa para pagar',
+            'Add to Family Tasks': 'Adicionar a Tarefas Familiares',
+            'Add to Friends Tasks': 'Adicionar a Tarefas de Amigos',
+            'Add to Praxe Tasks': 'Adicionar a Tarefas de Praxe',
+            'Add to favourites': 'Adicionar aos favoritos',
+            'Add →': 'Adicionar →',
+            'Birthday': 'Aniversário',
+            'Birthday task already exists': 'Tarefa de aniversário já existe',
+            'Push session to tasks': 'Enviar sessão para tarefas',
+            'Push to Tasks as group': 'Enviar para Tarefas como grupo',
+            'Push to tasks': 'Enviar para tarefas',
+            'Remove': 'Remover',
+            'Remove Account': 'Remover Conta',
+            'Remove App': 'Remover App',
+            'Remove Content': 'Remover Conteúdo',
+            'Remove Device': 'Remover Dispositivo',
+            'Remove Emulator': 'Remover Emulador',
+            'Remove Game': 'Remover Jogo',
+            'Remove Habit': 'Remover Hábito',
+            'Remove Info': 'Remover Informação',
+            'Remove Item': 'Remover Item',
+            'Remove Platform': 'Remover Plataforma',
+            'Remove Position': 'Remover Posição',
+            'Remove Spec': 'Remover Especificação',
+            'Remove Task': 'Remover Tarefa',
+            'Remove activity?': 'Remover atividade?',
+            'Remove appointment?': 'Remover compromisso?',
+            'Remove bug': 'Remover bug',
+            'Remove changelog entry': 'Remover entrada de histórico',
+            'Remove from Watchlist': 'Remover da Lista de Observação',
+            'Remove from Wishlist': 'Remover da Lista de Desejos',
+            'Remove from favourites': 'Remover dos favoritos',
+            'Remove habit': 'Remover hábito',
+            'Remove habit?': 'Remover hábito?',
+            'Remove item': 'Remover item',
+            'Remove item?': 'Remover item?',
+            'Remove log entry': 'Remover entrada de log',
+            'Remove log entry?': 'Remover entrada de log?',
+            'Remove note?': 'Remover nota?',
+            'Remove outfit': 'Remover roupa',
+            'Remove person?': 'Remover pessoa?',
+            'Remove task': 'Remover tarefa',
+            'Reset all discipline check-marks for this week?': 'Redefinir todas as marcações de disciplina desta semana?',
+            'Reset all tasks for today? Your previous day has been saved to <strong>Day History</strong>.': 'Redefinir todas as tarefas de hoje? Seu dia anterior foi salvo no <strong>Histórico de Dias</strong>.',
+            'Reset recovery checklist?': 'Redefinir lista de verificação de recuperação?',
+            'Reset streak?': 'Redefinir recorde?',
+            'Reset visit checklist? All checks and notes will be cleared.': 'Redefinir lista de verificação de visita? Todos os cheques e notas serão apagados.',
+            'Reset week?': 'Redefinir semana?',
+            'Reset your Gym weekly streak back to 0? This cannot be undone.': 'Redefinir seu recorde semanal de Gym para 0? Isto não pode ser desfeito.',
+            'Reset your Martial Arts weekly streak back to 0? This cannot be undone.': 'Redefinir seu recorde semanal de Artes Marciais para 0? Isto não pode ser desfeito.',
+            'Reset your music practice streak to 0?': 'Redefinir seu recorde de prática musical para 0?',
+            'Save failed: ': 'Falha ao salvar: ',
+            'Set birthday': 'Definir aniversário',
+            'Tap to cycle priority': 'Toque para mudar a prioridade',
+            'Tap to set your session goal…': 'Toque para definir seu objetivo de sessão…',
+            'Task already exists': 'Tarefa já existe',
+            'Task done — update item?': 'Tarefa concluída — atualizar item?',
+            'Task name': 'Nome da tarefa',
+            'Task type is locked for imported grouped tasks with subtasks.': 'O tipo de tarefa está bloqueado para tarefas agrupadas importadas com subtarefas.',
+            'Update': 'Atualizar',
+            'Update: ': 'Atualizar: '
         };
         const TRANSLATIONS = {
             en: {
@@ -265,76 +416,80 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             localStorage.setItem('appLanguage', lang);
             location.reload();
         }
+        const _sortedKeys = () => Object.keys(PT_STRINGS).sort((a, b) => b.length - a.length);
+
+        function _translateText(text) {
+            if (!text || _appLanguage !== 'pt') return text;
+            let result = text;
+            for (let key of _sortedKeys()) {
+                if (result.includes(key)) {
+                    result = result.split(key).join(PT_STRINGS[key]);
+                }
+            }
+            return result;
+        }
+
+        function _translateNode(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                let text = node.textContent;
+                let translated = _translateText(text);
+                if (translated !== text) {
+                    node.textContent = translated;
+                }
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                // Translate element's own text content (no children)
+                if (node.children.length === 0 && node.textContent && !node.tagName.match(/^(SCRIPT|STYLE)$/)) {
+                    let text = node.textContent;
+                    let translated = _translateText(text);
+                    if (translated !== text) {
+                        node.textContent = translated;
+                    }
+                }
+                // Translate attributes
+                ['title', 'placeholder', 'aria-label', 'data-tooltip'].forEach(attr => {
+                    if (node.hasAttribute && node.hasAttribute(attr)) {
+                        let val = node.getAttribute(attr);
+                        let translated = _translateText(val);
+                        if (translated !== val) {
+                            node.setAttribute(attr, translated);
+                        }
+                    }
+                });
+                // Process all child nodes
+                for (let child of Array.from(node.childNodes)) {
+                    _translateNode(child);
+                }
+            }
+        }
+
         function _updateLanguageUI() {
             const sel = document.getElementById('langSelect');
             if (sel) sel.value = _appLanguage;
 
             if (_appLanguage !== 'pt') return;
 
-            const sorted = Object.keys(PT_STRINGS).sort((a, b) => b.length - a.length);
+            // Translate entire DOM
+            _translateNode(document.body);
 
-            // Recursively translate ALL text in DOM
-            function translateNode(node) {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    let text = node.textContent;
-                    for (let key of sorted) {
-                        if (text.includes(key)) {
-                            text = text.split(key).join(PT_STRINGS[key]);
-                        }
+            // Watch for new content added to DOM and translate it
+            if (!window._translationObserver) {
+                window._translationObserver = new MutationObserver(mutations => {
+                    if (_appLanguage === 'pt') {
+                        mutations.forEach(mutation => {
+                            mutation.addedNodes.forEach(node => {
+                                if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+                                    _translateNode(node);
+                                }
+                            });
+                        });
                     }
-                    if (text !== node.textContent) {
-                        node.textContent = text;
-                    }
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    // Also try translating element's direct textContent (for simple elements)
-                    if (node.children.length === 0 && node.textContent) {
-                        let text = node.textContent;
-                        for (let key of sorted) {
-                            if (text.includes(key)) {
-                                text = text.split(key).join(PT_STRINGS[key]);
-                            }
-                        }
-                        if (text !== node.textContent) {
-                            node.textContent = text;
-                        }
-                    }
-                    // Translate title and aria-label attributes
-                    if (node.title) {
-                        let title = node.title;
-                        for (let key of sorted) {
-                            if (title.includes(key)) {
-                                title = title.split(key).join(PT_STRINGS[key]);
-                            }
-                        }
-                        if (title !== node.title) node.title = title;
-                    }
-                    if (node.getAttribute && node.getAttribute('aria-label')) {
-                        let label = node.getAttribute('aria-label');
-                        for (let key of sorted) {
-                            if (label.includes(key)) {
-                                label = label.split(key).join(PT_STRINGS[key]);
-                            }
-                        }
-                        node.setAttribute('aria-label', label);
-                    }
-                    // Translate placeholder
-                    if (node.placeholder) {
-                        let ph = node.placeholder;
-                        for (let key of sorted) {
-                            if (ph.includes(key)) {
-                                ph = ph.split(key).join(PT_STRINGS[key]);
-                            }
-                        }
-                        if (ph !== node.placeholder) node.placeholder = ph;
-                    }
-                    // Process child nodes
-                    for (let child of Array.from(node.childNodes)) {
-                        translateNode(child);
-                    }
-                }
+                });
+                window._translationObserver.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    characterData: false
+                });
             }
-
-            translateNode(document.body);
         }
 
         // Load saved state
