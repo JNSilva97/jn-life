@@ -43,7 +43,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Clear Blocks': 'Limpar Blocos',
             'Save Data': 'Guardar Dados',
             'Load Data': 'Carregar Dados',
-            'Full Reset — clear all app data': 'Reset Completo — limpar todos os dados do aplicativo',
+            'Full Reset — clear all app data': 'Reinício Completo — limpar todos os dados do aplicativo',
             'focus': 'foco',
             'tasks': 'tarefas',
             'Done': 'Pronto',
@@ -281,7 +281,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'No accounts yet. Add one below.': 'Nenhuma conta ainda. Adicione uma abaixo.',
             'No projects yet. Add one below.': 'Nenhum projeto ainda. Adicione um abaixo.',
             'No subscriptions yet. Add one below.': 'Nenhuma assinatura ainda. Adicione uma abaixo.',
-            'No tasks yet. Add tasks inside the Gym or Martial Arts sections.': 'Nenhuma tarefa ainda. Adicione tarefas dentro das seções Gym ou Martial Arts.',
+            'No tasks yet. Add tasks inside the Gym or Martial Arts sections.': 'Nenhuma tarefa ainda. Adicione tarefas dentro das seções Academia ou Artes Marciais.',
             'No tasks yet. Add tasks inside the health sub-sections.': 'Nenhuma tarefa ainda. Adicione tarefas dentro das subseções de saúde.',
             'Add drill (e.g. Round kick 3×10)': 'Adicionar exercício (ex: Chute redondo 3×10)',
             'Add exercise (e.g. Bench 4×8)': 'Adicionar exercício (ex: Supino 4×8)',
@@ -425,7 +425,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Tasks for Room. Connect to Important / Schedule progress.': 'Tarefas para Quarto. Conecte ao progresso de Importante/Cronograma.',
             'Tasks for Shopping. These connect to Important/Schedule progress.': 'Tarefas para Compras. Estas conectam ao progresso de Importante/Cronograma.',
             'Tasks for Social Media. Connect to Important / Schedule progress.': 'Tarefas para Redes Sociais. Conecte ao progresso de Importante/Cronograma.',
-            'Tasks for Streaming. Connect to Important / Schedule progress.': 'Tarefas para Streaming. Conecte ao progresso de Importante/Cronograma.',
+            'Tasks for Streaming. Connect to Important / Schedule progress.': 'Tarefas para Transmissão. Conecte ao progresso de Importante/Cronograma.',
             'Tasks for Travel List. Connect to Important / Schedule progress.': 'Tarefas para Lista de Viagem. Conecte ao progresso de Importante/Cronograma.',
             'Tasks for this project — synced with Schedule.': 'Tarefas para este projeto — sincronizadas com Cronograma.',
             'Tasks sync with Schedule R-slots and Important page progress.': 'Tarefas sincronizam com slots R do Cronograma e progresso da página Importante.',
@@ -550,7 +550,9 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Notes and descriptions': 'Notas e descrições',
             'Add': 'Adicionar',
             'Edit': 'Editar',
-            'Delete': 'Eliminar'
+            'Delete': 'Eliminar',
+            '● NOW': '● AGORA',
+            '📍 Now': '📍 Agora'
         };
         const TRANSLATIONS = {
             en: {
@@ -618,17 +620,34 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             localStorage.setItem('appLanguage', lang);
             location.reload();
         }
-        const _sortedKeys = () => Object.keys(PT_STRINGS).sort((a, b) => b.length - a.length);
+        // Builds one alternation regex (longest key first, word-boundaried) so every
+        // string gets translated in a single pass over the ORIGINAL text — replaced
+        // segments are never re-scanned, which is what caused cascading corruption
+        // like "Edit Schedule" -> "Editar Cronograma" -> "Editarar Cronograma" when
+        // the shorter key "Edit" matched inside the already-translated "Editar".
+        let _translationRegex = null;
+        function _buildTranslationRegex() {
+            // JS's native \b only understands ASCII word chars, so it fails on
+            // accented letters (e.g. "Sa" would wrongly match inside "Saúde").
+            // Use manual lookaround with a Latin-accented-aware char class instead.
+            const wordChars = 'A-Za-z0-9À-ÖØ-öø-ÿ';
+            const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const keys = Object.keys(PT_STRINGS).sort((a, b) => b.length - a.length);
+            const parts = keys.map(key => {
+                let p = escapeRegExp(key);
+                const startsWord = new RegExp('^[' + wordChars + ']').test(key);
+                const endsWord = new RegExp('[' + wordChars + ']$').test(key);
+                if (startsWord) p = '(?<![' + wordChars + '])' + p;
+                if (endsWord) p = p + '(?![' + wordChars + '])';
+                return p;
+            });
+            _translationRegex = new RegExp(parts.join('|'), 'g');
+        }
 
         function _translateText(text) {
             if (!text || _appLanguage !== 'pt') return text;
-            let result = text;
-            for (let key of _sortedKeys()) {
-                if (result.includes(key)) {
-                    result = result.split(key).join(PT_STRINGS[key]);
-                }
-            }
-            return result;
+            if (!_translationRegex) _buildTranslationRegex();
+            return text.replace(_translationRegex, (match) => PT_STRINGS[match] || match);
         }
 
         function _translateNode(node) {
@@ -639,14 +658,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                     node.textContent = translated;
                 }
             } else if (node.nodeType === Node.ELEMENT_NODE) {
-                // Translate element's own text content (no children)
-                if (node.children.length === 0 && node.textContent && !node.tagName.match(/^(SCRIPT|STYLE)$/)) {
-                    let text = node.textContent;
-                    let translated = _translateText(text);
-                    if (translated !== text) {
-                        node.textContent = translated;
-                    }
-                }
+                if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE' || node.tagName === 'TEXTAREA') return;
                 // Translate attributes
                 ['title', 'placeholder', 'aria-label', 'data-tooltip'].forEach(attr => {
                     if (node.hasAttribute && node.hasAttribute(attr)) {
@@ -18042,13 +18054,17 @@ function backToImportantMenu() {
 
         function updateLiveDateBadge() {
             const now = new Date();
-            const days = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
-            const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-            const dayName = days[now.getDay()];
+            const daysEN = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+            const monthsEN = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+            const daysPT = ['DOMINGO','SEGUNDA','TERÇA','QUARTA','QUINTA','SEXTA','SÁBADO'];
+            const monthsPT = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+            const isPT = _appLanguage === 'pt';
+            const dayName = (isPT ? daysPT : daysEN)[now.getDay()];
             const date = now.getDate();
-            const month = months[now.getMonth()];
+            const month = (isPT ? monthsPT : monthsEN)[now.getMonth()];
+            const connector = isPT ? 'DE' : 'OF';
             const el = document.getElementById('liveDateBadge');
-            if (el) el.textContent = `🔴 ${dayName} ${date} OF ${month}`;
+            if (el) el.textContent = `🔴 ${dayName} ${date} ${connector} ${month}`;
         }
 
         // ── AUTO-HIGHLIGHT CURRENT TIME BLOCK ───────────────────────────────────
