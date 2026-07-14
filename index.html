@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="JN_Life_APP.css?v=20260702r">
+    <link rel="stylesheet" href="JN_Life_APP.css?v=20260702s">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#020817">
     <link rel="apple-touch-icon" href="icon.png">
@@ -324,14 +324,20 @@
                                transition:all 0.15s;">
                         🗑 Clear Blocks
                     </button>
-                    <button id="sched-fab-lang" onclick="toggleAppLanguage()"
+                    <label id="sched-fab-lang" for="langSelectFab"
                         style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:40px;
                                border:1.5px solid rgba(251,191,36,0.5);background:rgba(15,23,42,0.97);
                                color:#fbbf24;font-size:0.8em;font-weight:800;font-family:'Outfit',sans-serif;
                                cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.5);white-space:nowrap;
                                transition:all 0.15s;margin-bottom:6px;">
-                        🌐 <span id="sched-fab-lang-label">Language: EN</span>
-                    </button>
+                        🌐
+                        <select id="langSelectFab" onchange="setLanguage(this.value)"
+                            style="background:transparent;border:none;color:#fbbf24;font-weight:800;
+                                   font-family:'Outfit',sans-serif;font-size:1em;cursor:pointer;outline:none;">
+                            <option value="en" style="background:#0f172a;color:#e2e8f0;">English</option>
+                            <option value="pt" style="background:#0f172a;color:#e2e8f0;">Português</option>
+                        </select>
+                    </label>
                 </div>
                 <!-- Main FAB button -->
                 <button id="sched-fab-btn" onclick="toggleSchedFab()"
@@ -3858,7 +3864,7 @@
 
     </div>
 
-<script src="JN_Life_APP.js?v=20260702r"></script>
+<script src="JN_Life_APP.js?v=20260702s"></script>
 
         <!-- JUMP TO NOW BUTTON -->
         <button class="jump-now-btn hidden" id="jumpNowBtn" onclick="jumpToNow()">

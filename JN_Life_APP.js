@@ -618,9 +618,6 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             localStorage.setItem('appLanguage', lang);
             location.reload();
         }
-        function toggleAppLanguage() {
-            setLanguage(_appLanguage === 'pt' ? 'en' : 'pt');
-        }
         const _sortedKeys = () => Object.keys(PT_STRINGS).sort((a, b) => b.length - a.length);
 
         function _translateText(text) {
@@ -671,8 +668,8 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             const sel = document.getElementById('langSelect');
             if (sel) sel.value = _appLanguage;
 
-            const fabLangLabel = document.getElementById('sched-fab-lang-label');
-            if (fabLangLabel) fabLangLabel.textContent = _appLanguage === 'pt' ? 'Idioma: PT' : 'Language: EN';
+            const fabSel = document.getElementById('langSelectFab');
+            if (fabSel) fabSel.value = _appLanguage;
 
             if (_appLanguage !== 'pt') return;
 
