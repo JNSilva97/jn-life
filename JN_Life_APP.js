@@ -34,6 +34,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Love': 'Amor',
             'Music': 'Música',
             'Empty': 'Vazio',
+            '(choose)': '(escolher)',
             'Reset day': 'Reiniciar dia',
             'Re-sync blocks': 'Resincronizar blocos',
             'Reset Day': 'Reiniciar Dia',
@@ -188,8 +189,16 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'House Hunt': 'Caça Casa',
             'Lost & Missing': 'Perdido e Desaparecido',
             'Family': 'Família',
-            'Sexiends': 'Sexiends',
+            'Friends': 'Amigos',
             'Praxe': 'Praxe',
+            'Travel list': 'Lista de Viagem',
+            'Look': 'Aparência',
+            'Lenses': 'Lentes',
+            'Computer': 'Computador',
+            'Social Media': 'Redes Sociais',
+            'Phone': 'Telefone',
+            'Emulator': 'Emulador',
+            'Shopping': 'Compras',
             'Home & Life': 'Casa e Vida',
             'Personal': 'Pessoal',
             'Daily Focus': 'Foco Diário',
@@ -6617,9 +6626,10 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                 // Update the label text inside the card (never overwrite the whole card)
                 const labelEl = document.getElementById('imp-' + slot + '-label');
                 if (labelEl) {
-                    labelEl.textContent = hasResp
+                    const rawLabel = hasResp
                         ? (meta.emoji ? meta.emoji + ' ' + meta.title : meta.title)
                         : 'Empty';
+                    labelEl.textContent = _translateText(rawLabel);
                     labelEl.style.color = hasResp ? '#e2e8f0' : '#475569';
                 }
                 // Dim the slot badge if nothing assigned
