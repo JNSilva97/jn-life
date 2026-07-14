@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="JN_Life_APP.css?v=20260702q">
+    <link rel="stylesheet" href="JN_Life_APP.css?v=20260702r">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#020817">
     <link rel="apple-touch-icon" href="icon.png">
@@ -44,16 +44,10 @@
             <span class="tab-emoji">🍳</span>
             <span class="tab-label"><span id="tab-recipes-label">Recipes</span></span>
         </button>
-        <!-- Language selector - TOP RIGHT CORNER -->
-        <select id="langSelect" onchange="setLanguage(this.value)" style="
-            position:fixed;top:12px;right:12px;z-index:10000;
-            width:60px;height:40px;border-radius:10px;border:2px solid #fbbf24;
-            background:linear-gradient(135deg,rgba(20,20,30,0.95),rgba(10,10,20,0.98));
-            color:#fbbf24;font-weight:800;cursor:pointer;font-size:0.9em;
-            padding:6px 8px;font-family:'Outfit',sans-serif;
-            box-shadow:0 8px 32px rgba(251,191,36,0.15),inset 0 1px 0 rgba(255,255,255,0.1);">
-            <option value="en" style="background:#020817;color:#e2e8f0;">EN</option>
-            <option value="pt" style="background:#020817;color:#fbbf24;">PT</option>
+        <!-- Language selector lives in the Schedule FAB menu now (see sched-fab-menu) -->
+        <select id="langSelect" onchange="setLanguage(this.value)" style="display:none;">
+            <option value="en">EN</option>
+            <option value="pt">PT</option>
         </select>
 
         <!-- clock lives here — part of the grid, never overlaps -->
@@ -327,8 +321,16 @@
                                border:1.5px solid rgba(248,113,113,0.4);background:rgba(15,23,42,0.97);
                                color:#f87171;font-size:0.8em;font-weight:800;font-family:'Outfit',sans-serif;
                                cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.5);white-space:nowrap;
-                               transition:all 0.15s;margin-bottom:6px;">
+                               transition:all 0.15s;">
                         🗑 Clear Blocks
+                    </button>
+                    <button id="sched-fab-lang" onclick="toggleAppLanguage()"
+                        style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:40px;
+                               border:1.5px solid rgba(251,191,36,0.5);background:rgba(15,23,42,0.97);
+                               color:#fbbf24;font-size:0.8em;font-weight:800;font-family:'Outfit',sans-serif;
+                               cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.5);white-space:nowrap;
+                               transition:all 0.15s;margin-bottom:6px;">
+                        🌐 <span id="sched-fab-lang-label">Language: EN</span>
                     </button>
                 </div>
                 <!-- Main FAB button -->
@@ -3856,7 +3858,7 @@
 
     </div>
 
-<script src="JN_Life_APP.js?v=20260702q"></script>
+<script src="JN_Life_APP.js?v=20260702r"></script>
 
         <!-- JUMP TO NOW BUTTON -->
         <button class="jump-now-btn hidden" id="jumpNowBtn" onclick="jumpToNow()">
