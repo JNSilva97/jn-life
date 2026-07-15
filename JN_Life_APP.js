@@ -1479,9 +1479,18 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             // JS's native \b only understands ASCII word chars, so it fails on
             // accented letters (e.g. "Sa" would wrongly match inside "Saúde").
             // Use manual lookaround with a Latin-accented-aware char class instead.
+            //
+            // IMPORTANT: only MULTI-WORD keys go into this substring regex.
+            // Single-word keys (Gym, Sleep, Night, ...) must NOT match inside
+            // longer text, because user-entered names share the DOM with app
+            // labels — "Gym Backpack" (user task) must never become
+            // "Ginásio Backpack". Single words are handled in _translateText
+            // as whole-text exact matches only.
             const wordChars = 'A-Za-z0-9À-ÖØ-öø-ÿ';
             const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const keys = Object.keys(PT_STRINGS).sort((a, b) => b.length - a.length);
+            const keys = Object.keys(PT_STRINGS)
+                .filter(k => /\s/.test(k.trim()) || /^[^A-Za-zÀ-ÖØ-öø-ÿ]/.test(k))
+                .sort((a, b) => b.length - a.length);
             const parts = keys.map(key => {
                 let p = escapeRegExp(key);
                 const startsWord = new RegExp('^[' + wordChars + ']').test(key);
@@ -1496,6 +1505,15 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
         function _translateText(text) {
             if (!text || _appLanguage !== 'pt') return text;
             if (!_translationRegex) _buildTranslationRegex();
+            // Single-word keys: only when the WHOLE text is that word, optionally
+            // surrounded by non-letters (emoji, digits, punctuation) — so the
+            // label "Gym", "🗂️ Projects" and "July 2026" translate, but the
+            // user-entered "Gym Backpack" is left alone.
+            const core = text.replace(/^[^A-Za-zÀ-ÖØ-öø-ÿ]+/, '').replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]+$/, '');
+            if (core && !/\s/.test(core) && PT_STRINGS.hasOwnProperty(core)) {
+                return text.replace(core, PT_STRINGS[core]);
+            }
+            // Multi-word keys: substring replace (single pass on original text)
             return text.replace(_translationRegex, (match) => PT_STRINGS[match] || match);
         }
 
@@ -1507,8 +1525,9 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                     node.textContent = translated;
                 }
             } else if (node.nodeType === Node.ELEMENT_NODE) {
-                if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE' || node.tagName === 'TEXTAREA') return;
-                // Translate attributes
+                if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE') return;
+                if (node.isContentEditable) return; // user-editable content — never translate
+                // Translate attributes (app text — placeholders, tooltips)
                 ['title', 'placeholder', 'aria-label', 'data-tooltip'].forEach(attr => {
                     if (node.hasAttribute && node.hasAttribute(attr)) {
                         let val = node.getAttribute(attr);
@@ -1518,6 +1537,8 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                         }
                     }
                 });
+                // TEXTAREA's text child is its user-typed value — attributes only
+                if (node.tagName === 'TEXTAREA') return;
                 // Process all child nodes
                 for (let child of Array.from(node.childNodes)) {
                     _translateNode(child);
