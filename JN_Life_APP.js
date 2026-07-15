@@ -1789,6 +1789,8 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
 
         function _translateNode(node) {
             if (node.nodeType === Node.TEXT_NODE) {
+                // Skip text inside any [data-no-translate] container (user-stored values)
+                if (node.parentElement && node.parentElement.closest('[data-no-translate]')) return;
                 let text = node.textContent;
                 let translated = _translateText(text);
                 if (translated !== text) {
@@ -1797,6 +1799,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE') return;
                 if (node.isContentEditable) return; // user-editable content — never translate
+                if (node.hasAttribute && node.hasAttribute('data-no-translate')) return; // renders user-stored values
                 // Translate attributes (app text — placeholders, tooltips)
                 ['title', 'placeholder', 'aria-label', 'data-tooltip'].forEach(attr => {
                     if (node.hasAttribute && node.hasAttribute(attr)) {
@@ -3007,6 +3010,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                     const notesEl = document.createElement('div');
                     notesEl.style.cssText = 'color:#64748b;font-size:0.8em;margin-top:2px;line-height:1.4;';
                     notesEl.textContent = t.notes;
+                    notesEl.setAttribute('data-no-translate', '1'); // user notes
                     textWrap.appendChild(notesEl);
                 }
                 headerDiv.appendChild(textWrap);
@@ -7751,16 +7755,22 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
         }
 
         function updateRLabels() {
+            // Custom (user-created) responsibilities keep their name exactly as typed;
+            // only built-in category labels get translated.
+            const _customIds = new Set();
+            try { Object.values(customRespItems || {}).forEach(arr => (arr || []).forEach(it => _customIds.add(it.id))); } catch(e) {}
             ['r1','r2','r3'].forEach(slot => {
                 const meta = getRespMeta(rSlots[slot]);
                 const hasResp = rSlots[slot] && rSlots[slot] !== 'none';
+                const isCustom = hasResp && _customIds.has(rSlots[slot]);
                 // Update the label text inside the card (never overwrite the whole card)
                 const labelEl = document.getElementById('imp-' + slot + '-label');
                 if (labelEl) {
                     const rawLabel = hasResp
                         ? (meta.emoji ? meta.emoji + ' ' + meta.title : meta.title)
                         : 'Empty';
-                    labelEl.textContent = _translateText(rawLabel);
+                    labelEl.textContent = isCustom ? rawLabel : _translateText(rawLabel);
+                    labelEl.setAttribute('data-no-translate', '1'); // set explicitly above; walker must not re-touch
                     labelEl.style.color = hasResp ? '#e2e8f0' : '#475569';
                 }
                 // Dim the slot badge if nothing assigned
@@ -7899,12 +7909,14 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             const mainDiv = document.createElement('div');
             mainDiv.className = 'task-main';
             mainDiv.textContent = (t.emoji ? t.emoji + ' ' : '') + (t.title || t.text || '');
+            mainDiv.setAttribute('data-no-translate', '1'); // user task text
             textCol2.appendChild(mainDiv);
             const descText = t.desc || t.notes || '';
             if (descText && !hasSubtasks) {
                 const descEl = document.createElement('div');
                 descEl.style.cssText = 'color:#64748b;font-size:0.8em;line-height:1.4;';
                 descEl.textContent = descText;
+                descEl.setAttribute('data-no-translate', '1'); // user notes
                 textCol2.appendChild(descEl);
             }
             header.appendChild(textCol2);
@@ -7975,6 +7987,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                         lblEl.style.cssText = 'font-size:0.82em;color:' + (done ? '#475569' : '#94a3b8') + ';'
                             + (done ? 'text-decoration:line-through;' : '');
                         lblEl.textContent = s.text;
+                        lblEl.setAttribute('data-no-translate', '1'); // user subtask text
 
                         row.appendChild(chkEl);
                         row.appendChild(lblEl);
@@ -22938,7 +22951,7 @@ window.switchFitnessTab = switchFitnessTab;
             row.innerHTML = orgModes.map((m, mi) => {
                 const col = _orgColFor(mi);
                 const isActive = m.id === _orgMode;
-                return '<button onclick="setOrgMode(\'' + m.id + '\')" '
+                return '<button onclick="setOrgMode(\'' + m.id + '\')" data-no-translate="1" '
                     + 'style="flex-shrink:0;padding:9px 14px;border-radius:12px;border:1.5px solid '
                     + (isActive ? col.border : 'rgba(255,255,255,0.07)') + ';background:'
                     + (isActive ? col.bg : 'rgba(255,255,255,0.03)') + ';color:'
@@ -23052,7 +23065,7 @@ window.switchFitnessTab = switchFitnessTab;
                     ? '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0;" onclick="event.stopPropagation()">'
                         + '<button onclick="moveOrgGroup(' + gi + ',-1)" data-tooltip="Move up" ' + (gi === 0 ? 'disabled' : '') + ' style="' + _moveBtnStyle(gi !== 0) + '" onmouseover="if(!this.disabled)this.style.background=\'' + col.border + '\'" onmouseout="if(!this.disabled)this.style.background=\'' + col.bg + '\'">▲</button>'
                         + '<button onclick="moveOrgGroup(' + gi + ',1)" data-tooltip="Move down" ' + (gi === data.length - 1 ? 'disabled' : '') + ' style="' + _moveBtnStyle(gi !== data.length - 1) + '" onmouseover="if(!this.disabled)this.style.background=\'' + col.border + '\'" onmouseout="if(!this.disabled)this.style.background=\'' + col.bg + '\'">▼</button>'
-                        + (orgModes.length > 1 ? '<select name="org-group-mode-' + gi + '" onchange="moveOrgGroupToMode(' + gi + ',this.value)" onclick="event.stopPropagation()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;border-radius:8px;padding:5px 8px;font-size:0.68em;font-weight:700;font-family:\'Outfit\',sans-serif;max-width:90px;cursor:pointer;">'
+                        + (orgModes.length > 1 ? '<select name="org-group-mode-' + gi + '" data-no-translate="1" onchange="moveOrgGroupToMode(' + gi + ',this.value)" onclick="event.stopPropagation()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;border-radius:8px;padding:5px 8px;font-size:0.68em;font-weight:700;font-family:\'Outfit\',sans-serif;max-width:90px;cursor:pointer;">'
                         + orgModes.map(m => '<option value="' + escapeHtml(m.id) + '"' + (m.id === _orgMode ? ' selected' : '') + '>' + escapeHtml(m.label) + '</option>').join('')
                         + '</select>' : '')
                     + '</div>'
@@ -26152,6 +26165,7 @@ window.switchFitnessTab = switchFitnessTab;
             title.className = 'hour-title';
             title.style.flex = '1';
             title.textContent = `${block.emoji} ${block.title}`;
+            title.setAttribute('data-no-translate', '1'); // user-editable block name
             titleRow.appendChild(title);
             // Collapsed summary badge (task count)
             const collapsedSummary = document.createElement('span');
@@ -26453,6 +26467,7 @@ window.switchFitnessTab = switchFitnessTab;
                 label.style.marginTop = '2px';
                 label.style.fontWeight = '700';
                 label.textContent = task.text || '';
+                label.setAttribute('data-no-translate', '1'); // user task text
                 body.appendChild(label);
 
                 if (task.recipeId) {
@@ -26481,16 +26496,19 @@ window.switchFitnessTab = switchFitnessTab;
                     const notesNode = document.createElement('div');
                     notesNode.style.cssText = 'font-size:0.78em;color:#475569;margin-top:5px;font-weight:500;';
                     notesNode.textContent = task.notes;
+                    notesNode.setAttribute('data-no-translate', '1'); // user notes
                     body.appendChild(notesNode);
                 }
             } else {
                 const textNode = document.createElement('div');
                 textNode.textContent = task.text;
+                textNode.setAttribute('data-no-translate', '1'); // user task text
                 body.appendChild(textNode);
                 if (task.notes) {
                     const notesNode = document.createElement('div');
                     notesNode.style.cssText = 'font-size:0.78em;color:#475569;margin-top:2px;font-weight:500;';
                     notesNode.textContent = task.notes;
+                    notesNode.setAttribute('data-no-translate', '1'); // user notes
                     body.appendChild(notesNode);
                 }
                 // Subtasks (from imported Organize groups)
@@ -26577,6 +26595,7 @@ window.switchFitnessTab = switchFitnessTab;
                             lblEl.style.cssText = 'font-size:0.8em;flex:1;color:' + (done ? '#475569' : '#94a3b8') + ';'
                                 + (done ? 'text-decoration:line-through;' : '');
                             lblEl.textContent = s.text;
+                            lblEl.setAttribute('data-no-translate', '1'); // user subtask text
 
                             const delSubBtn = document.createElement('button');
                             delSubBtn.textContent = '✕';
