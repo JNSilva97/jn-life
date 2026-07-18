@@ -562,6 +562,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             'Delete': 'Eliminar',
             '● NOW': '● AGORA',
             '📍 Now': '📍 Agora',
+            "No tasks yet.": "Nenhuma tarefa ainda.",
             "OUT": "ESGOTADO",
             "Today!": "Hoje!",
             "Tasks: ": "Tarefas: ",
@@ -1787,20 +1788,53 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             return text.replace(_translationRegex, (match) => PT_STRINGS[match] || match);
         }
 
-        function _translateNode(node) {
+        // Inside a user-data zone ([data-no-translate] container), a text node is
+        // only translated when its ENTIRE trimmed content is a multi-word dictionary
+        // key. App strings embedded in those lists ("＋ Add task", "No tasks yet.")
+        // are always full known phrases, while user-entered names are arbitrary —
+        // and single words ("Gym", "Coffee") are exactly where the two collide, so
+        // single words never translate inside a zone.
+        function _translateTextUserZone(text) {
+            if (!text || _appLanguage !== 'pt') return text;
+            const trimmed = text.trim();
+            if (trimmed && /\s/.test(trimmed) && PT_STRINGS.hasOwnProperty(trimmed)) {
+                return text.replace(trimmed, PT_STRINGS[trimmed]);
+            }
+            return text;
+        }
+
+        function _translateNode(node, inUserZone) {
             if (node.nodeType === Node.TEXT_NODE) {
-                // Skip text inside any [data-no-translate] container (user-stored values)
-                if (node.parentElement && node.parentElement.closest('[data-no-translate]')) return;
-                let text = node.textContent;
-                let translated = _translateText(text);
+                // Direct entry from the MutationObserver: derive the zone from the
+                // nearest marker — an explicit data-no-translate wins, a plain BUTTON
+                // (app chrome) resets the zone.
+                if (inUserZone === undefined) {
+                    inUserZone = false;
+                    let anc = node.parentElement;
+                    while (anc) {
+                        if (anc.hasAttribute && anc.hasAttribute('data-no-translate')) { inUserZone = true; break; }
+                        if (anc.tagName === 'BUTTON') { inUserZone = false; break; }
+                        anc = anc.parentElement;
+                    }
+                }
+                const text = node.textContent;
+                const translated = inUserZone ? _translateTextUserZone(text) : _translateText(text);
                 if (translated !== text) {
                     node.textContent = translated;
                 }
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE') return;
                 if (node.isContentEditable) return; // user-editable content — never translate
-                if (node.hasAttribute && node.hasAttribute('data-no-translate')) return; // renders user-stored values
-                // Translate attributes (app text — placeholders, tooltips)
+                if (inUserZone === undefined) {
+                    inUserZone = !!(node.closest && node.closest('[data-no-translate]'));
+                }
+                // Buttons are app chrome (Save/Cancel/Add…) even inside user lists —
+                // reset the zone for them. An explicit data-no-translate on the button
+                // itself (e.g. day-type tabs showing user-named types) still wins.
+                if (node.tagName === 'BUTTON') inUserZone = false;
+                if (node.hasAttribute && node.hasAttribute('data-no-translate')) inUserZone = true;
+                // Attributes are always app-authored (tooltips, placeholders) — translate
+                // them even inside user zones
                 ['title', 'placeholder', 'aria-label', 'data-tooltip'].forEach(attr => {
                     if (node.hasAttribute && node.hasAttribute(attr)) {
                         let val = node.getAttribute(attr);
@@ -1814,9 +1848,81 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                 if (node.tagName === 'TEXTAREA') return;
                 // Process all child nodes
                 for (let child of Array.from(node.childNodes)) {
-                    _translateNode(child);
+                    _translateNode(child, inUserZone);
                 }
             }
+        }
+
+        // Containers whose text content is user-stored data (names the user typed).
+        // Stamped once at startup; innerHTML re-renders replace children but keep
+        // the container element, so the stamp survives every render.
+        const _USER_DATA_CONTAINERS = [
+            '[id^="gtask-list-"]',          // task lists in every responsibility section
+            '[id^="custom-items-"]',        // custom responsibility menu items
+            '#org-modes-row',               // day-type tabs (user-named types)
+            '#org-manage-panel',            // day-type manage list
+            '#org-groups-container',        // organize day groups
+            '#org-night-groups-container',  // organize night groups
+            '#music-instruments-list',      // user-added instruments
+            '#lv2-grid',                    // limit categories (Coffee, Alcohol…)
+            '#lv2-summary',
+            // Finance (labels are contenteditable but chips/selects render as text)
+            '#finance-money-grid', '#fin-cats-list', '#fin-debts-list', '#fin-tx-list', '#subs-list',
+            // Recipes: names, ingredients, steps are user data
+            '#rcp-grid', '#rcp-ing-list', '#rcp-step-list',
+            // Pills & liquids inventories
+            '#pills-inventory-list', '#liquids-inventory-list',
+            // Work / projects
+            '#work-projects-list', '#work-timer-project-list', '#work-timer-log-list',
+            '#proj-cards-list', '#proj-list-view',
+            // Fitness
+            '#gym-sessions-list', '#ma-disciplines-list',
+            // Music sub-panels
+            '#gtr-session-list', '#gtr-repertoire-list', '#gtr-log-list',
+            '#pno-session-list', '#pno-repertoire-list', '#pno-log-list',
+            '#sax-session-list', '#sax-repertoire-list', '#sax-log-list',
+            '#abl-project-list', '#abl-skills-list', '#abl-log-list',
+            // People sections
+            '#fam-members-list', '#fri-members-list',
+            '#praxe-people-list', '#praxe-events-list', '#praxe-notes-list', '#pe-subtasks-list',
+            // Love section
+            '#love-fields-grid', '#love-dates-list', '#love-memories-list', '#b-gifts-list',
+            // House hunt & lost
+            '#house-listings-list', '#house-contacts-list', '#house-criteria-list',
+            '#lost-items-list',
+            // Shopping & travel
+            '#shopping-buy-list', '#shopping-wishlist',
+            '#trv-dest-list', '#trv-pack-list', '#trv-habits-list', '#trv-log-list',
+            // Health hub sections
+            '#gd-appt-list', '#gd-meds-list', '#gd-log-list',
+            '#dent-appt-list', '#dent-log-list',
+            '#drm-appt-list', '#drm-rx-list', '#drm-log-list',
+            '#oph-appt-list', '#oph-log-list',
+            '#psy-session-list', '#psy-tools-list', '#psy-log-list',
+            '#len-rx-list', '#len-supply-list', '#len-habits-list', '#len-log-list',
+            // Tech & home
+            '#pc-apps-list', '#pc-specs-list', '#pc-maint-list', '#pc-log-list',
+            '#ph-apps-list', '#ph-info-list', '#ph-maint-list', '#ph-log-list',
+            '#emu-games-list', '#emu-setup-list', '#emu-wishlist-list', '#emu-log-list',
+            '#str-platform-list', '#str-devices-list', '#str-checklist-list', '#str-log-list',
+            '#sm-account-list', '#sm-queue-list', '#sm-habits-list', '#sm-log-list',
+            '#rm-items-list', '#rm-cleaning-list', '#rm-upgrades-list', '#rm-log-list',
+            // Look & invest
+            '#look-outfit-list', '#look-grooming-list', '#look-upgrades-list',
+            '#inv-position-list', '#inv-watchlist-list', '#inv-habits-list', '#inv-log-list',
+            // Update-app project entries
+            '#ua-backlog-list', '#ua-bugs-list', '#ua-changelog-list',
+            // Schedule block-move picker (lists user block names)
+            '#sched-move-block-list',
+            // R-slot responsibility pickers (include custom user responsibilities)
+            '[id$="-search-dd"]',
+        ];
+        function _stampNoTranslateContainers() {
+            _USER_DATA_CONTAINERS.forEach(sel => {
+                try {
+                    document.querySelectorAll(sel).forEach(el => el.setAttribute('data-no-translate', '1'));
+                } catch(e) {}
+            });
         }
 
         function _updateLanguageUI() {
@@ -1827,6 +1933,10 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             if (fabSel) fabSel.value = _appLanguage;
 
             if (_appLanguage !== 'pt') return;
+
+            // Mark user-data containers BEFORE the first pass so their contents
+            // are treated as user zones from the start
+            _stampNoTranslateContainers();
 
             // Translate entire DOM
             _translateNode(document.body);
