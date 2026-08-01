@@ -18015,12 +18015,20 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateSummaryPills() {
             // Reset summaryDone
             summaryDone = {};
-            // Target all elements with data-summary attribute (cards + R cards)
-            document.querySelectorAll('[data-summary]').forEach(card => {
+            // Target only the actual Daily Focus / R-slot summary cards. Task <li>
+            // elements also carry a matching data-summary attribute (for drag/drop
+            // targeting), so a blanket '[data-summary]' selector would sometimes hit
+            // a task row before the real card and skip the card entirely (dedup below).
+            document.querySelectorAll('.imp-menu-card[data-summary], .imp-r-card[data-summary]').forEach(card => {
                 const id = card.getAttribute('data-summary');
                 if (summaryDone.hasOwnProperty(id)) return; // already processed
                 let done = false;
-                const taskItems = document.querySelectorAll(`li.task-item[data-summary='${id}']`);
+                // Only count tasks actually shown in the Schedule — the R-slot panels
+                // (Responsibilities tab) render their own copy of the same tasks with
+                // an independent 'checked' state, so including them here could make a
+                // card show done/not-done based on a view the user isn't even looking
+                // at instead of what's really checked off in today's Schedule.
+                const taskItems = document.querySelectorAll(`#schedule li.task-item[data-summary='${id}']`);
                 // The skip flag means "skip this today" — it has no date of its own, so
                 // only honor it while actually viewing today; other days must reflect
                 // their own real task state instead of a sticky global flag.
