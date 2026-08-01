@@ -1210,6 +1210,8 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             "Working": "A funcionar",
             "Worn": "Usado",
             "Zone / Neighbourhood": "Zona / Bairro",
+            "Section / area (optional)": "Secção / área (opcional)",
+            "Section / area": "Secção / área",
             "Restore backup from": "Restaurar cópia de segurança de",
             "Restore from": "Restaurar de",
             "recipes": "receitas",
@@ -3445,8 +3447,9 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                         const p2 = _projGet(); if (!p2) return;
                         const changeId = 'c' + Date.now();
                         if (!Array.isArray(p2.changelog)) p2.changelog = [];
-                        p2.changelog.push({ id:changeId, type:'fix', version:'v'+(p2.version||'1.0.0'), desc:task.linkedTitle||task.text });
                         const bugIdx = (p2.bugs||[]).findIndex(x => x.id === task.linkedId);
+                        const bugSection = bugIdx !== -1 ? (p2.bugs[bugIdx].section || '') : '';
+                        p2.changelog.push({ id:changeId, type:'fix', version:'v'+(p2.version||'1.0.0'), desc:task.linkedTitle||task.text, section:bugSection });
                         const snapshot = bugIdx !== -1 ? {...p2.bugs[bugIdx]} : null;
                         if (bugIdx !== -1) p2.bugs.splice(bugIdx, 1);
                         const t = gTasksAll[sid][taskIdx];
@@ -11927,7 +11930,7 @@ function renderUABugs() {
                     onConfirm() {
                         const p2 = _projGet(); if (!p2) return;
                         if (!Array.isArray(p2.changelog)) p2.changelog = [];
-                        p2.changelog.push({ id:'c'+Date.now(), type:'fix', version:'v'+(p2.version||'1.0.0'), desc: b.desc });
+                        p2.changelog.push({ id:'c'+Date.now(), type:'fix', version:'v'+(p2.version||'1.0.0'), desc: b.desc, section: b.section||'' });
                         const idx2 = p2.bugs.findIndex(x => x.id === b.id);
                         if (idx2 !== -1) p2.bugs.splice(idx2, 1);
                         saveProjectsData(); renderUABugs(); renderUAChangelog(); updateUAStats();
@@ -12092,6 +12095,12 @@ function renderUAChangelog() {
             vb.textContent = c.version;
             topRow.appendChild(vb);
         }
+        if (c.section) {
+            const sb = document.createElement('span');
+            sb.style.cssText = 'font-size:0.68em;font-weight:700;padding:2px 6px;border-radius:99px;background:rgba(129,140,248,0.1);color:#818cf8;border:1px solid rgba(129,140,248,0.2);';
+            sb.textContent = '📍 ' + c.section;
+            topRow.appendChild(sb);
+        }
         body.appendChild(topRow);
         if (c.desc) { const d = document.createElement('div'); d.style.cssText='color:#94a3b8;font-size:0.82em;line-height:1.55;'; d.textContent=c.desc; body.appendChild(d); }
         const right = document.createElement('div');
@@ -12115,7 +12124,10 @@ function renderUAChangelog() {
         const verInp = document.createElement('input'); verInp.type='text'; verInp.value=c.version||'';
         verInp.style.cssText = 'padding:5px 8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e8f0;font-size:0.8em;width:90px;';
         verInp.placeholder = 'v1.0';
-        cTopRow.appendChild(typeInp); cTopRow.appendChild(verInp);
+        const secInp = document.createElement('input'); secInp.type='text'; secInp.value=c.section||'';
+        secInp.style.cssText = 'padding:5px 8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e8f0;font-size:0.8em;flex:1;min-width:100px;';
+        secInp.placeholder = 'Section / area';
+        cTopRow.appendChild(typeInp); cTopRow.appendChild(verInp); cTopRow.appendChild(secInp);
         const descInp = document.createElement('textarea');
         descInp.value = c.desc||''; descInp.rows = 2;
         descInp.style.cssText = 'width:100%;padding:7px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e8f0;font-size:0.84em;box-sizing:border-box;resize:vertical;';
@@ -12129,7 +12141,7 @@ function renderUAChangelog() {
         const cSave = document.createElement('button');
         cSave.style.cssText = 'padding:5px 14px;border-radius:8px;border:none;background:rgba(251,191,36,0.2);color:#fbbf24;font-size:0.8em;font-weight:700;cursor:pointer;';
         cSave.textContent = 'Save';
-        cSave.onclick = e => { e.stopPropagation(); const d=descInp.value.trim(); if(!d){descInp.focus();return;} const proj=_projGet(); if(!proj) return; proj.changelog[realIdx].type=typeInp.value; proj.changelog[realIdx].version=verInp.value.trim(); proj.changelog[realIdx].desc=d; saveProjectsData(); renderUAChangelog(); updateUAStats(); };
+        cSave.onclick = e => { e.stopPropagation(); const d=descInp.value.trim(); if(!d){descInp.focus();return;} const proj=_projGet(); if(!proj) return; proj.changelog[realIdx].type=typeInp.value; proj.changelog[realIdx].version=verInp.value.trim(); proj.changelog[realIdx].desc=d; proj.changelog[realIdx].section=secInp.value.trim(); saveProjectsData(); renderUAChangelog(); updateUAStats(); };
         cBtnRow.appendChild(cCancel); cBtnRow.appendChild(cSave);
         editForm.appendChild(cTopRow); editForm.appendChild(descInp); editForm.appendChild(cBtnRow);
         editBtn.onclick = e => { e.stopPropagation(); const open=editForm.style.display!=='none'; editForm.style.display=open?'none':'flex'; row.style.borderRadius=open?'13px':'13px 13px 0 0'; };
@@ -12145,11 +12157,12 @@ function saveUAChange() {
     const type    = document.getElementById('uac-type')?.value    || 'feature';
     const version = (document.getElementById('uac-version')?.value || '').trim() || ('v' + (p.version || '1.0.0'));
     const desc    = (document.getElementById('uac-desc')?.value    || '').trim();
+    const section = (document.getElementById('uac-section')?.value || '').trim();
     if (!desc) { document.getElementById('uac-desc')?.focus(); return; }
     if (!Array.isArray(p.changelog)) p.changelog = [];
-    p.changelog.push({ id:'c'+Date.now(), type, version, desc });
+    p.changelog.push({ id:'c'+Date.now(), type, version, desc, section });
     saveProjectsData();
-    ['uac-version','uac-desc'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    ['uac-version','uac-desc','uac-section'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     hideUAForm('change'); renderUAChangelog(); updateUAStats();
 }
 

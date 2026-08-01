@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="JN_Life_APP.css?v=20260703e">
+    <link rel="stylesheet" href="JN_Life_APP.css?v=20260703f">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#020817">
     <link rel="apple-touch-icon" href="icon.png">
@@ -3284,6 +3284,9 @@
                             <input class="house-input" id="uac-desc" placeholder="What was shipped / changed" maxlength="120" style="flex:1;">
                         </div>
                         <div class="house-add-form-row">
+                            <input class="house-input" id="uac-section" placeholder="Section / area (optional)" maxlength="40" style="flex:1;">
+                        </div>
+                        <div class="house-add-form-row">
                             <button class="house-save-btn" style="background:linear-gradient(135deg,#fbbf24,#d97706);" onclick="saveUAChange()">Add</button>
                             <button class="house-cancel-btn" onclick="hideUAForm('change')">Cancel</button>
                         </div>
@@ -3864,7 +3867,7 @@
 
     </div>
 
-<script src="JN_Life_APP.js?v=20260703e"></script>
+<script src="JN_Life_APP.js?v=20260703f"></script>
 
         <!-- JUMP TO NOW BUTTON -->
         <button class="jump-now-btn hidden" id="jumpNowBtn" onclick="jumpToNow()">
