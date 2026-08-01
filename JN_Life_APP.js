@@ -18025,6 +18025,20 @@ document.addEventListener('DOMContentLoaded', function() {
          * Update the classes on summary pills based on completion state.
          * Each summary is considered done only when all tasks with the same data-summary are checked.
          */
+        // R1/R2/R3 can be reassigned to a different responsibility at any time, but
+        // nothing retags or removes a task that was imported into Schedule while a
+        // PREVIOUS responsibility occupied that slot — it keeps the slot's
+        // data-summary tag forever. Without this, an old unchecked task from
+        // whatever used to be pinned there would permanently block the card from
+        // ever showing done again, even after fully completing the new
+        // responsibility's tasks. 'fitness' and 'health' are virtual — they
+        // aggregate several real sections — so expand those before matching.
+        function _realSidsForResp(respId) {
+            if (respId === 'fitness') return ['gym-1-2-3', 'martial-arts'];
+            if (respId === 'health') return ['general-doctor', 'dentist', 'ophthalmologist', 'dermatologist', 'psychologist'];
+            return [respId];
+        }
+
         function updateSummaryPills() {
             // Reset summaryDone
             summaryDone = {};
@@ -18041,7 +18055,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // an independent 'checked' state, so including them here could make a
                 // card show done/not-done based on a view the user isn't even looking
                 // at instead of what's really checked off in today's Schedule.
-                const taskItems = document.querySelectorAll(`#schedule li.task-item[data-summary='${id}']`);
+                let taskItems = document.querySelectorAll(`#schedule li.task-item[data-summary='${id}']`);
+                if (/^r[123]$/.test(id) && typeof rSlots !== 'undefined' && rSlots[id] && rSlots[id] !== 'none') {
+                    const sids = _realSidsForResp(rSlots[id]);
+                    taskItems = Array.from(taskItems).filter(item => {
+                        const taskId = item.getAttribute('data-task') || '';
+                        return sids.some(sid => taskId.startsWith('gtask-' + sid + '-') || taskId.startsWith('resp-' + sid + '-'));
+                    });
+                }
                 // The skip flag means "skip this today" — it has no date of its own, so
                 // only honor it while actually viewing today; other days must reflect
                 // their own real task state instead of a sticky global flag.
