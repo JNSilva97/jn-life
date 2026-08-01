@@ -3352,16 +3352,18 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
 
                             delSubBtn.addEventListener('click', e => {
                                 e.stopPropagation();
-                                t.subtasks.splice(si, 1);
-                                t.done = t.subtasks.length > 0 ? t.subtasks.every(x => x.done) : false;
-                                saveGTasksAll();
-                                if (t.groupRef && t.groupRef.isWork) _deleteTaskSubFromProject(t.groupRef, si);
-                                // Update progress badge
-                                if (progEl) {
-                                    const dc = t.subtasks.filter(x => x.done).length;
-                                    progEl.textContent = t.done ? '✓' : (t.subtasks.length ? dc + '/' + t.subtasks.length : '');
-                                }
-                                rebuildSubs();
+                                _confirmDeleteTask(s.text, () => {
+                                    t.subtasks.splice(si, 1);
+                                    t.done = t.subtasks.length > 0 ? t.subtasks.every(x => x.done) : false;
+                                    saveGTasksAll();
+                                    if (t.groupRef && t.groupRef.isWork) _deleteTaskSubFromProject(t.groupRef, si);
+                                    // Update progress badge
+                                    if (progEl) {
+                                        const dc = t.subtasks.filter(x => x.done).length;
+                                        progEl.textContent = t.done ? '✓' : (t.subtasks.length ? dc + '/' + t.subtasks.length : '');
+                                    }
+                                    rebuildSubs();
+                                });
                             });
 
                             subRow.appendChild(subHandle);
@@ -3715,38 +3717,45 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
         function removeGTask(sid, i) {
             if (!gTasksAll[sid]) return;
             const task = gTasksAll[sid][i];
-            // If this task has a logged changelog entry, offer to reverse everything
-            if (sid === 'update-app' && task && task.loggedChangeId) {
-                showConfirm({
-                    icon: '🗑️', title: 'Remove task',
-                    message: `Also remove the changelog entry and restore the <strong>${task.linkedType}</strong> to the list?`,
-                    confirmLabel: 'Remove & Reverse', confirmColor: '#f87171',
-                    onConfirm() {
-                        const p2 = _projGet();
-                        if (p2) {
-                            const cIdx = (p2.changelog||[]).findIndex(c => c.id === task.loggedChangeId);
-                            if (cIdx !== -1) p2.changelog.splice(cIdx, 1);
-                            if (task.linkedSnapshot) {
-                                if (task.linkedType === 'feature') { if (!Array.isArray(p2.features)) p2.features=[]; p2.features.push(task.linkedSnapshot); }
-                                else if (task.linkedType === 'bug') { if (!Array.isArray(p2.bugs)) p2.bugs=[]; p2.bugs.push(task.linkedSnapshot); }
+            const label = task ? (task.title || task.text || '') : '';
+            _confirmDeleteTask(label, () => {
+                // If this task has a logged changelog entry, offer to also reverse it
+                if (sid === 'update-app' && task && task.loggedChangeId) {
+                    showConfirm({
+                        icon: '🗑️', title: 'Also reverse changelog?',
+                        message: `Also remove the changelog entry and restore the <strong>${task.linkedType}</strong> to the list?`,
+                        confirmLabel: 'Remove & Reverse', confirmColor: '#f87171',
+                        cancelLabel: 'Just remove',
+                        onConfirm() {
+                            const p2 = _projGet();
+                            if (p2) {
+                                const cIdx = (p2.changelog||[]).findIndex(c => c.id === task.loggedChangeId);
+                                if (cIdx !== -1) p2.changelog.splice(cIdx, 1);
+                                if (task.linkedSnapshot) {
+                                    if (task.linkedType === 'feature') { if (!Array.isArray(p2.features)) p2.features=[]; p2.features.push(task.linkedSnapshot); }
+                                    else if (task.linkedType === 'bug') { if (!Array.isArray(p2.bugs)) p2.bugs=[]; p2.bugs.push(task.linkedSnapshot); }
+                                }
+                                saveProjectsData();
+                                renderUAChangelog(); renderUABacklog(); renderUABugs(); updateUAStats();
                             }
-                            saveProjectsData();
-                            renderUAChangelog(); renderUABacklog(); renderUABugs(); updateUAStats();
-                        }
-                        _doRemoveGTask(sid, i);
-                        showToast('↩️ Reversed & removed', '#f87171');
-                    },
-                    onCancel() { _doRemoveGTask(sid, i); }
-                });
-                return;
-            }
-            _doRemoveGTask(sid, i);
+                            _doRemoveGTask(sid, i);
+                            showToast('↩️ Reversed & removed', '#f87171');
+                        },
+                        onCancel() { _doRemoveGTask(sid, i); }
+                    });
+                    return;
+                }
+                _doRemoveGTask(sid, i);
+            });
         }
 
+        // No confirmation: only ever called from automated cleanup (e.g. clearing
+        // a "Buy X" task after the user completes a pill/liquid refill) where the
+        // user already confirmed via that flow's own dialog.
         function removeGTaskById(sid, rawId) {
             if (!gTasksAll[sid]) return;
             const idx = gTasksAll[sid].findIndex(t => String(t.id) === String(rawId));
-            if (idx !== -1) removeGTask(sid, idx);
+            if (idx !== -1) _doRemoveGTask(sid, idx);
         }
 
         function showGTask(sid) {
@@ -20395,6 +20404,23 @@ window.switchFitnessTab = switchFitnessTab;
             document.body.style.overflow = 'hidden';
         }
 
+        // Shared confirmation for every task/subtask delete entry point (main task
+        // lists, schedule block tasks, schedule subtasks, Organize day/night items,
+        // Work project subtasks). Pass the task's own label so the dialog names it.
+        function _confirmDeleteTask(label, onConfirm) {
+            showConfirm({
+                icon: '🗑️',
+                title: 'Delete task?',
+                message: label
+                    ? `Delete <strong>"${escapeHtml(String(label))}"</strong>? This cannot be undone.`
+                    : 'Delete this task? This cannot be undone.',
+                confirmLabel: 'Delete',
+                confirmColor: '#f87171',
+                cancelLabel: 'Cancel',
+                onConfirm
+            });
+        }
+
         function _modalConfirm() {
             _closeModal();
             if (_modalCb) _modalCb();
@@ -22043,12 +22069,15 @@ window.switchFitnessTab = switchFitnessTab;
             saveWorkProjects(); renderWorkProjects();
         }
         function deleteWorkSubtask(pi, si) {
-            const p = workProjects[pi]; if (!p) return;
-            p.subtasks.splice(si, 1);
-            saveWorkProjects();
-            renderWorkProjects();
-            // Full sync to gTasksAll + schedBlocks (handles delete + reindex in one pass)
-            if (typeof _syncWorkProjectSubOrderToLinked === 'function') _syncWorkProjectSubOrderToLinked(p.id);
+            const p = workProjects[pi]; if (!p || !p.subtasks || !p.subtasks[si]) return;
+            const label = p.subtasks[si].text || '';
+            _confirmDeleteTask(label, () => {
+                p.subtasks.splice(si, 1);
+                saveWorkProjects();
+                renderWorkProjects();
+                // Full sync to gTasksAll + schedBlocks (handles delete + reindex in one pass)
+                if (typeof _syncWorkProjectSubOrderToLinked === 'function') _syncWorkProjectSubOrderToLinked(p.id);
+            });
         }
 
         // ── Push project to Tasks ─────────────────────────────────────────────
@@ -23485,12 +23514,10 @@ window.switchFitnessTab = switchFitnessTab;
             const d = _orgModeGroups(); if (!d[gi]) return;
             const sub = d[gi].subtasks[si];
             if (!sub) return;
-            showConfirm({ message: 'Delete this sub-task?', confirmLabel: 'Delete', cancelLabel: 'Cancel',
-                onConfirm: () => {
-                    d[gi].subtasks.splice(si,1); _orgModeGroupsSave();
-                    _renderOrgGroups('org-groups-container', _orgModeGroups(), _orgModeGroupsSave, false);
-                    _removeGroupSubtaskFromLinkedTasks(d[gi].id, sub.id);
-                }
+            _confirmDeleteTask(sub.text, () => {
+                d[gi].subtasks.splice(si,1); _orgModeGroupsSave();
+                _renderOrgGroups('org-groups-container', _orgModeGroups(), _orgModeGroupsSave, false);
+                _removeGroupSubtaskFromLinkedTasks(d[gi].id, sub.id);
             });
         }
         function pushOrgGroupToTasks(gi) {
@@ -23803,12 +23830,10 @@ window.switchFitnessTab = switchFitnessTab;
             if (!orgNightGroups[gi]) return;
             const sub = orgNightGroups[gi].subtasks[si];
             if (!sub) return;
-            showConfirm({ message: 'Delete this sub-task?', confirmLabel: 'Delete', cancelLabel: 'Cancel',
-                onConfirm: () => {
-                    orgNightGroups[gi].subtasks.splice(si,1); saveOrgNightGroups();
-                    _renderOrgGroups('org-night-groups-container', orgNightGroups, saveOrgNightGroups, true);
-                    _removeGroupSubtaskFromLinkedTasks(orgNightGroups[gi].id, sub.id);
-                }
+            _confirmDeleteTask(sub.text, () => {
+                orgNightGroups[gi].subtasks.splice(si,1); saveOrgNightGroups();
+                _renderOrgGroups('org-night-groups-container', orgNightGroups, saveOrgNightGroups, true);
+                _removeGroupSubtaskFromLinkedTasks(orgNightGroups[gi].id, sub.id);
             });
         }
         function pushOrgNightGroupToTasks(gi) {
@@ -23899,11 +23924,13 @@ window.switchFitnessTab = switchFitnessTab;
         }
 
         function _completeInventoryRefillCleanup() {
+            // No confirmation here: the user already confirmed by completing the
+            // refill dialog — this just clears the "Buy X" task that triggered it.
             if (!_pendingInventoryRefillCleanup) return;
             const ctx = _pendingInventoryRefillCleanup;
             _pendingInventoryRefillCleanup = null;
             if (ctx.source === 'gtask') {
-                removeGTask(ctx.sid, ctx.index);
+                _doRemoveGTask(ctx.sid, ctx.index);
             } else if (ctx.source === 'schedule') {
                 _removeScheduleImportedTaskById(ctx.taskId);
             }
@@ -26715,42 +26742,44 @@ window.switchFitnessTab = switchFitnessTab;
                             if (schedEditMode) {
                                 delSubBtn.addEventListener('click', function(e) {
                                     e.stopPropagation();
-                                    task.subtasks.splice(si, 1);
-                                    task.done = task.subtasks.length > 0 ? task.subtasks.every(function(x){ return x.done; }) : false;
-                                    if (_isCurrentDay) {
-                                        if (task.done) tasks[task.id] = true; else delete tasks[task.id];
-                                        localStorage.setItem('wednesdayTasks', JSON.stringify(tasks));
-                                    }
-                                    saveSchedBlocks();
-                                    li.classList.toggle('checked', task.done);
-                                    progBadge.textContent = task.subtasks.length ? (task.done ? '✓' : task.subtasks.filter(function(x){return x.done;}).length + '/' + task.subtasks.length) : '✓';
-                                    progBadge.style.background = task.done ? taskAccent : 'transparent';
-                                    progBadge.style.color = task.done ? '#000' : taskAccent;
-                                    if (_isCurrentDay) {
-                                        const _syncSid = (function() {
-                                            if (!task.id || !task.id.startsWith('gtask-')) return null;
-                                            const rest = task.id.slice(6);
-                                            const lastDash = rest.lastIndexOf('-');
-                                            return lastDash > 0 ? rest.slice(0, lastDash) : null;
-                                        })();
-                                        if (_syncSid && typeof gTasksAll !== 'undefined') {
-                                            const gtasks = gTasksAll[_syncSid] || [];
-                                            const _rawId = task.id.slice(6 + _syncSid.length + 1);
-                                            const gt = gtasks.find(function(x){ return String(x.id) === _rawId; });
-                                            if (gt && gt.subtasks && gt.subtasks[si] !== undefined) {
-                                                gt.subtasks.splice(si, 1);
-                                                gt.done = task.done;
-                                                if (typeof saveGTasksAll === 'function') saveGTasksAll();
-                                                if (typeof renderGTasks === 'function') renderGTasks(_syncSid);
+                                    _confirmDeleteTask(s.text, function() {
+                                        task.subtasks.splice(si, 1);
+                                        task.done = task.subtasks.length > 0 ? task.subtasks.every(function(x){ return x.done; }) : false;
+                                        if (_isCurrentDay) {
+                                            if (task.done) tasks[task.id] = true; else delete tasks[task.id];
+                                            localStorage.setItem('wednesdayTasks', JSON.stringify(tasks));
+                                        }
+                                        saveSchedBlocks();
+                                        li.classList.toggle('checked', task.done);
+                                        progBadge.textContent = task.subtasks.length ? (task.done ? '✓' : task.subtasks.filter(function(x){return x.done;}).length + '/' + task.subtasks.length) : '✓';
+                                        progBadge.style.background = task.done ? taskAccent : 'transparent';
+                                        progBadge.style.color = task.done ? '#000' : taskAccent;
+                                        if (_isCurrentDay) {
+                                            const _syncSid = (function() {
+                                                if (!task.id || !task.id.startsWith('gtask-')) return null;
+                                                const rest = task.id.slice(6);
+                                                const lastDash = rest.lastIndexOf('-');
+                                                return lastDash > 0 ? rest.slice(0, lastDash) : null;
+                                            })();
+                                            if (_syncSid && typeof gTasksAll !== 'undefined') {
+                                                const gtasks = gTasksAll[_syncSid] || [];
+                                                const _rawId = task.id.slice(6 + _syncSid.length + 1);
+                                                const gt = gtasks.find(function(x){ return String(x.id) === _rawId; });
+                                                if (gt && gt.subtasks && gt.subtasks[si] !== undefined) {
+                                                    gt.subtasks.splice(si, 1);
+                                                    gt.done = task.done;
+                                                    if (typeof saveGTasksAll === 'function') saveGTasksAll();
+                                                    if (typeof renderGTasks === 'function') renderGTasks(_syncSid);
+                                                }
+                                            }
+                                            if (task.groupRef && task.groupRef.isWork && typeof _deleteTaskSubFromProject === 'function') {
+                                                _deleteTaskSubFromProject(task.groupRef, si);
                                             }
                                         }
-                                        if (task.groupRef && task.groupRef.isWork && typeof _deleteTaskSubFromProject === 'function') {
-                                            _deleteTaskSubFromProject(task.groupRef, si);
-                                        }
-                                    }
-                                    buildBlockSubs();
-                                    updateSummaryPills();
-                                    updateProgress();
+                                        buildBlockSubs();
+                                        updateSummaryPills();
+                                        updateProgress();
+                                    });
                                 });
                             }
 
@@ -27318,9 +27347,12 @@ window.switchFitnessTab = switchFitnessTab;
         function deleteSchedTask(blockId, tIdx) {
             const block = schedBlocks.find(b => b.id === blockId);
             if (!block || !block.tasks[tIdx]) return;
-            block.tasks.splice(tIdx, 1);
-            saveSchedBlocks();
-            renderSchedule();
+            const label = block.tasks[tIdx].text || '';
+            _confirmDeleteTask(label, () => {
+                block.tasks.splice(tIdx, 1);
+                saveSchedBlocks();
+                renderSchedule();
+            });
         }
 
         function reorderSchedTask(blockId, tIdx, dir) {
