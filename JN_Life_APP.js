@@ -1966,7 +1966,6 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
 
         // Load saved state
         let tasks = JSON.parse(localStorage.getItem('wednesdayTasks')) || {};
-        let focusSkipped = JSON.parse(localStorage.getItem('focusSkipped') || '{}');
         // ── LIMITS v2 ──────────────────────────────────────────────────────
         // Migrate from old hardcoded format if needed
         let limitsV2 = [];
@@ -2039,6 +2038,35 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             rSlotsPerDay[_day] = rSlots;
             localStorage.setItem('rSlotsPerDay', JSON.stringify(rSlotsPerDay));
             localStorage.setItem('rSlots', JSON.stringify(rSlots)); // compat
+        }
+
+        // Daily Focus card manual "done" toggle — per-day, same pattern as rSlots
+        // above, so a card checked off on a past day stays checked when you look
+        // back at it, instead of only ever applying to "today".
+        let focusSkippedPerDay = {};
+        try {
+            var _fspd = JSON.parse(localStorage.getItem('focusSkippedPerDay') || '{}');
+            if (_fspd && typeof _fspd === 'object' && !Array.isArray(_fspd)) focusSkippedPerDay = _fspd;
+        } catch(e) {}
+
+        // Migrate legacy flat focusSkipped → today's slot (once)
+        (function() {
+            if (focusSkippedPerDay[_rTodayKey]) return;
+            try {
+                var _legFs = JSON.parse(localStorage.getItem('focusSkipped') || 'null');
+                if (_legFs && typeof _legFs === 'object' && !Array.isArray(_legFs)) {
+                    focusSkippedPerDay[_rTodayKey] = _legFs;
+                    localStorage.setItem('focusSkippedPerDay', JSON.stringify(focusSkippedPerDay));
+                }
+            } catch(e) {}
+        })();
+
+        let focusSkipped = focusSkippedPerDay[_rTodayKey] || {};
+
+        function saveFocusSkipped() {
+            var _day = (typeof schedDay !== 'undefined') ? schedDay : _rTodayKey;
+            focusSkippedPerDay[_day] = focusSkipped;
+            localStorage.setItem('focusSkippedPerDay', JSON.stringify(focusSkippedPerDay));
         }
 
         // ════════════════════════════════════════════════════════
@@ -18063,11 +18091,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         return sids.some(sid => taskId.startsWith('gtask-' + sid + '-') || taskId.startsWith('resp-' + sid + '-'));
                     });
                 }
-                // The skip flag means "skip this today" — it has no date of its own, so
-                // only honor it while actually viewing today; other days must reflect
-                // their own real task state instead of a sticky global flag.
-                const isViewingToday = (typeof schedDay === 'undefined') || schedDay === _dateKey(new Date());
-                if (isViewingToday && focusSkipped[id]) {
+                // focusSkipped is per-day (loaded/swapped alongside rSlots as the user
+                // navigates the calendar), so it already reflects whichever day is
+                // currently being viewed — no "is this today" guard needed anymore.
+                if (focusSkipped[id]) {
                     done = true;
                 } else if (taskItems.length > 0) {
                     // Use each item's own 'checked' class (already correctly reflects
@@ -18091,7 +18118,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 focusSkipped[id] = true;
             }
-            localStorage.setItem('focusSkipped', JSON.stringify(focusSkipped));
+            saveFocusSkipped();
             updateSummaryPills();
             updateProgress();
         }
@@ -20577,7 +20604,7 @@ window.switchFitnessTab = switchFitnessTab;
                     tasks = {};
                     localStorage.setItem('wednesdayTasks', JSON.stringify(tasks));
                     focusSkipped = {};
-                    localStorage.setItem('focusSkipped', JSON.stringify(focusSkipped));
+                    saveFocusSkipped();
                     // Reset subtask done state inside schedule blocks
                     schedBlocks.forEach(block => {
                         block.tasks.forEach(task => {
@@ -25350,6 +25377,7 @@ window.switchFitnessTab = switchFitnessTab;
             schedDay = day;
             _loadSchedDay(day);
             rSlots = Object.assign({}, R_DEFAULTS, rSlotsPerDay[day] || {});
+            focusSkipped = focusSkippedPerDay[day] || {};
             ['r1','r2','r3'].forEach(function(slot) {
                 var sel = document.getElementById(slot + '-select');
                 if (sel) sel.value = rSlots[slot] || 'none';
