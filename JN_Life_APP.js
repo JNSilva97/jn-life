@@ -3458,6 +3458,12 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                         _uaSyncTaskToSchedule(sid, t);
                         updateSummaryPills(); updateProgress();
                         showToast('🚀 Logged! Now at v' + newVer, '#34d399');
+                        showConfirm({
+                            icon: '🗑️', title: 'Delete this task?',
+                            message: `"${task.linkedTitle||task.text}" is done and logged — clear it from your task list?`,
+                            confirmLabel: 'Delete', confirmColor: '#f87171', cancelLabel: 'Keep it',
+                            onConfirm() { _doRemoveGTask(sid, taskIdx); }
+                        });
                     },
                     onCancel() {
                         const t = gTasksAll[sid][taskIdx];
@@ -3487,6 +3493,12 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                         _uaSyncTaskToSchedule(sid, t);
                         updateSummaryPills(); updateProgress();
                         showToast('✅ Bug fix logged!', '#34d399');
+                        showConfirm({
+                            icon: '🗑️', title: 'Delete this task?',
+                            message: `"${task.linkedTitle||task.text}" is done and logged — clear it from your task list?`,
+                            confirmLabel: 'Delete', confirmColor: '#f87171', cancelLabel: 'Keep it',
+                            onConfirm() { _doRemoveGTask(sid, taskIdx); }
+                        });
                     },
                     onCancel() {
                         const t = gTasksAll[sid][taskIdx];
@@ -3758,7 +3770,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                         confirmLabel: 'Remove & Reverse', confirmColor: '#f87171',
                         cancelLabel: 'Just remove',
                         onConfirm() {
-                            const p2 = _projGet();
+                            const p2 = _projForLinkedTask(task);
                             if (p2) {
                                 const cIdx = (p2.changelog||[]).findIndex(c => c.id === task.loggedChangeId);
                                 if (cIdx !== -1) p2.changelog.splice(cIdx, 1);
