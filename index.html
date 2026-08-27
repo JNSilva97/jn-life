@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="JN_Life_APP.css?v=20260703h">
+    <link rel="stylesheet" href="JN_Life_APP.css?v=20260703i">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#020817">
     <link rel="apple-touch-icon" href="icon.png">
@@ -1671,12 +1671,12 @@
                 <button class="back-btn" onclick="backToRespMenu()">&#x2B05;&#xFE0F; Back</button>
 
                 <!-- TAB BAR -->
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
-                    <button id="health-tab-general-doctor" onclick="switchHealthTab('general-doctor')" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(56,189,248,0.4);background:rgba(56,189,248,0.15);color:#38bdf8;font-size:0.8em;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1FA7A; General</button>
-                    <button id="health-tab-dentist" onclick="switchHealthTab('dentist')" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:#475569;font-size:0.8em;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1F9B7; Dentist</button>
-                    <button id="health-tab-ophthalmologist" onclick="switchHealthTab('ophthalmologist')" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:#475569;font-size:0.8em;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1F441;&#xFE0F; Ophthalmo.</button>
-                    <button id="health-tab-dermatologist" onclick="switchHealthTab('dermatologist')" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:#475569;font-size:0.8em;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1F9F4; Dermatol.</button>
-                    <button id="health-tab-psychologist" onclick="switchHealthTab('psychologist')" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:#475569;font-size:0.8em;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1F9E0; Psychol.</button>
+                <div class="htab-scroll">
+                    <button id="health-tab-general-doctor" onclick="switchHealthTab('general-doctor')" style="padding:9px 16px;border-radius:14px;border:1px solid rgba(56,189,248,0.45);background:rgba(56,189,248,0.16);color:#38bdf8;font-size:0.82em;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1FA7A; General</button>
+                    <button id="health-tab-dentist" onclick="switchHealthTab('dentist')" style="padding:9px 16px;border-radius:14px;border:1px solid rgba(96,165,250,0.16);background:rgba(255,255,255,0.03);color:#475569;font-size:0.82em;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1F9B7; Dentist</button>
+                    <button id="health-tab-ophthalmologist" onclick="switchHealthTab('ophthalmologist')" style="padding:9px 16px;border-radius:14px;border:1px solid rgba(56,189,248,0.16);background:rgba(255,255,255,0.03);color:#475569;font-size:0.82em;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1F441;&#xFE0F; Ophthalmo.</button>
+                    <button id="health-tab-dermatologist" onclick="switchHealthTab('dermatologist')" style="padding:9px 16px;border-radius:14px;border:1px solid rgba(249,168,212,0.16);background:rgba(255,255,255,0.03);color:#475569;font-size:0.82em;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1F9F4; Dermatol.</button>
+                    <button id="health-tab-psychologist" onclick="switchHealthTab('psychologist')" style="padding:9px 16px;border-radius:14px;border:1px solid rgba(196,181,253,0.16);background:rgba(255,255,255,0.03);color:#475569;font-size:0.82em;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;">&#x1F9E0; Psychol.</button>
                 </div>
 
                 <!-- PANEL: GENERAL DOCTOR -->
@@ -3867,7 +3867,7 @@
 
     </div>
 
-<script src="JN_Life_APP.js?v=20260703h"></script>
+<script src="JN_Life_APP.js?v=20260703k"></script>
 
         <!-- JUMP TO NOW BUTTON -->
         <button class="jump-now-btn hidden" id="jumpNowBtn" onclick="jumpToNow()">

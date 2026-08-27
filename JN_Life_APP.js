@@ -8222,8 +8222,6 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
             // ── Try 1: direct module data lookup (sections whose tasks live in a module object, NOT gTasksAll) ──
             // NOTE: sections migrated to gTasksAll are intentionally excluded here so they fall through to Try 2.
             const MODULE_DATA_MAP = {
-                'dermatologist': typeof dermData !== 'undefined' ? dermData.tasks : null,
-                'psychologist':  typeof psyData  !== 'undefined' ? psyData.tasks  : null,
                 'streaming':     typeof streamingData !== 'undefined' ? streamingData.tasks : null,
                 'invest':        typeof investData !== 'undefined' ? investData.tasks : null,
                 'social-media':  typeof socialData !== 'undefined' ? socialData.tasks : null,
@@ -8237,8 +8235,8 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                 'travel-list':   typeof travelData !== 'undefined' ? travelData.tasks : null,
                 // Sections below are fully on gTasksAll — handled by Try 2:
                 // house, lost, family, friends, praxe, shopping, look,
-                // dentist, ophthalmologist, general-doctor, martial-arts,
-                // guitar, saxophone, piano, ableton (→ music), gym-1-2-3
+                // dentist, ophthalmologist, general-doctor, dermatologist, psychologist,
+                // martial-arts, guitar, saxophone, piano, ableton (→ music), gym-1-2-3
             };
 
             const moduleTasks = MODULE_DATA_MAP[respId];
@@ -10370,13 +10368,13 @@ function initGeneralDoctorSection(){
                 'gym-1-2-3':      typeof gTasksAll    !== 'undefined' ? (gTasksAll['gym-1-2-3'] || []) : [],
                 'martial-arts':   typeof gTasksAll    !== 'undefined' ? (gTasksAll['martial-arts'] || []) : [],
                 'fitness':        typeof gTasksAll    !== 'undefined' ? [...(gTasksAll['gym-1-2-3']||[]), ...(gTasksAll['martial-arts']||[])] : [],
-                'health':         [
-                    ...(typeof generalDoctorData !== 'undefined' ? (generalDoctorData.tasks || []) : []),
-                    ...(typeof dentistData       !== 'undefined' ? (dentistData.tasks       || []) : []),
-                    ...(typeof ophthalmologistData !== 'undefined' ? (ophthalmologistData.tasks || []) : []),
-                    ...(typeof dermData          !== 'undefined' ? (dermData.tasks          || []) : []),
-                    ...(typeof psyData           !== 'undefined' ? (psyData.tasks           || []) : []),
-                ],
+                'health':         typeof gTasksAll !== 'undefined' ? [
+                    ...(gTasksAll['general-doctor']   || []),
+                    ...(gTasksAll['dentist']          || []),
+                    ...(gTasksAll['ophthalmologist']  || []),
+                    ...(gTasksAll['dermatologist']    || []),
+                    ...(gTasksAll['psychologist']     || []),
+                ] : [],
                 'guitar':         typeof guitarData   !== 'undefined' ? guitarData.tasks   : [],
                 'saxophone':      typeof saxData      !== 'undefined' ? saxData.tasks      : [],
                 'piano':          typeof pianoData    !== 'undefined' ? pianoData.tasks    : [],
@@ -16208,6 +16206,17 @@ function initPsychologistSection() {
 
 let _activeHealthTab = 'general-doctor';
 
+const HEALTH_TAB_ACCENTS = {
+    'general-doctor':   '#38bdf8',
+    'dentist':          '#60a5fa',
+    'ophthalmologist':  '#38bdf8',
+    'dermatologist':    '#f9a8d4',
+    'psychologist':     '#c4b5fd',
+};
+function _healthTabHex2rgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(',');
+}
 function switchHealthTab(tab) {
     _activeHealthTab = tab;
     const tabs = ['general-doctor','dentist','ophthalmologist','dermatologist','psychologist'];
@@ -16216,9 +16225,11 @@ function switchHealthTab(tab) {
         const btn   = document.getElementById('health-tab-' + t);
         if (panel) panel.style.display = t === tab ? '' : 'none';
         if (btn) {
-            btn.style.background  = t === tab ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.03)';
-            btn.style.color       = t === tab ? '#38bdf8' : '#475569';
-            btn.style.borderColor = t === tab ? 'rgba(56,189,248,0.4)'  : 'rgba(255,255,255,0.07)';
+            const rgb = _healthTabHex2rgb(HEALTH_TAB_ACCENTS[t] || '#38bdf8');
+            btn.style.background  = t === tab ? 'rgba(' + rgb + ',0.16)' : 'rgba(255,255,255,0.03)';
+            btn.style.color       = t === tab ? HEALTH_TAB_ACCENTS[t] : '#475569';
+            btn.style.borderColor = t === tab ? 'rgba(' + rgb + ',0.45)' : 'rgba(' + rgb + ',0.16)';
+            btn.style.fontWeight  = t === tab ? '800' : '700';
         }
     });
     if (tab === 'general-doctor')    { renderGDAppts(); renderGDHabits(); renderGDMeds(); renderGDLog(); updateGDStats(); renderGTasks('general-doctor'); }
@@ -16242,6 +16253,9 @@ function initHealthSection() {
             accentColor: '#38bdf8'
         }));
         saveGTasksAll();
+        // Clear the source so a later delete in gTasksAll can't resurrect it here
+        generalDoctorData.tasks = [];
+        saveGeneralDoctorData();
     }
 
     // One-time migration: dentist
@@ -16255,6 +16269,8 @@ function initHealthSection() {
             accentColor: '#60a5fa'
         }));
         saveGTasksAll();
+        dentistData.tasks = [];
+        saveDentistData();
     }
 
     // One-time migration: ophthalmologist
@@ -16268,6 +16284,8 @@ function initHealthSection() {
             accentColor: '#38bdf8'
         }));
         saveGTasksAll();
+        ophthalmologistData.tasks = [];
+        saveOphthalmologistData();
     }
 
     // One-time migration: dermatologist
@@ -16281,6 +16299,8 @@ function initHealthSection() {
             accentColor: '#f9a8d4'
         }));
         saveGTasksAll();
+        dermData.tasks = [];
+        saveDermData();
     }
 
     // One-time migration: psychologist
@@ -16294,6 +16314,20 @@ function initHealthSection() {
             accentColor: '#c4b5fd'
         }));
         saveGTasksAll();
+        psyData.tasks = [];
+        savePsyData();
+    }
+
+    // One-time cleanup: these 5 legacy arrays are fully superseded by gTasksAll now.
+    // Even where migration had already happened in the past (guards above skipped),
+    // leftover entries here would resurrect a deleted gTasksAll task on the next load
+    // once gTasksAll[sid] goes empty again. Wipe them once, for good.
+    if (!generalDoctorData._legacyTasksCleared) {
+        generalDoctorData.tasks = []; generalDoctorData._legacyTasksCleared = true; saveGeneralDoctorData();
+        dentistData.tasks = []; saveDentistData();
+        ophthalmologistData.tasks = []; saveOphthalmologistData();
+        dermData.tasks = []; saveDermData();
+        psyData.tasks = []; savePsyData();
     }
 
     switchHealthTab(_activeHealthTab);

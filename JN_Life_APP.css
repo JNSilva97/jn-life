@@ -2203,6 +2203,23 @@
             color: #60a5fa;
         }
 
+        /* Horizontal-scroll tab strip (e.g. Health) — no wrap, no visible scrollbar */
+        .htab-scroll {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            margin-bottom: 16px;
+            padding-bottom: 2px;
+        }
+        .htab-scroll::-webkit-scrollbar { display: none; }
+        .htab-scroll button {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
         /* Area / Contact rows */
         .house-row-item {
             display: flex;
