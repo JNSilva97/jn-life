@@ -3426,7 +3426,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
 
         // ── Linked task complete/uncomplete handlers (Projects ↔ Tasks) ──────
         function _uaTaskLinkedComplete(task, sid, taskIdx) {
-            const curVer = (_projGet()||{}).version || '1.0.0';
+            const curVer = (_projForLinkedTask(task)||{}).version || '1.0.0';
             if (task.linkedType === 'feature') {
                 showConfirm({
                     icon: '🎉', title: 'Feature shipped!',
@@ -3443,7 +3443,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                     onConfirm() {
                         const bump = document.querySelector('input[name="ua-vbump"]:checked')?.value || 'minor';
                         const newVer = bumpVersion(curVer, bump);
-                        const p2 = _projGet(); if (!p2) return;
+                        const p2 = _projForLinkedTask(task); if (!p2) return;
                         p2.version = newVer;
                         const changeId = 'c' + Date.now();
                         if (!Array.isArray(p2.changelog)) p2.changelog = [];
@@ -3472,7 +3472,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                     message: `Log <strong>"${task.linkedTitle||task.text}"</strong> under <span style="color:#fbbf24;font-weight:800;">v${curVer}</span> in the changelog and remove it?`,
                     confirmLabel: 'Log & Fix', confirmColor: '#34d399',
                     onConfirm() {
-                        const p2 = _projGet(); if (!p2) return;
+                        const p2 = _projForLinkedTask(task); if (!p2) return;
                         const changeId = 'c' + Date.now();
                         if (!Array.isArray(p2.changelog)) p2.changelog = [];
                         const bugIdx = (p2.bugs||[]).findIndex(x => x.id === task.linkedId);
@@ -3504,7 +3504,7 @@ const irColor   = c=>`display:flex;align-items:center;gap:10px;padding:11px 13px
                 message: `Uncheck the task and remove the changelog entry?${task.linkedSnapshot ? '<br><span style="color:#94a3b8;font-size:0.85em;">The '+task.linkedType+' will be restored to the list.</span>' : ''}`,
                 confirmLabel: 'Reverse', confirmColor: '#f87171',
                 onConfirm() {
-                    const p2 = _projGet();
+                    const p2 = _projForLinkedTask(task);
                     if (p2 && task.loggedChangeId) {
                         const cIdx = (p2.changelog||[]).findIndex(c => c.id === task.loggedChangeId);
                         if (cIdx !== -1) p2.changelog.splice(cIdx, 1);
@@ -11526,6 +11526,25 @@ let _projSel = null; // id of currently open project
 
 function _projGet() {
     return projectsData.projects.find(p => p.id === _projSel) || null;
+}
+
+// Resolve the project that owns a linked feature/bug task, regardless of which
+// project (if any) is currently open in the UI. _projGet() alone only works
+// when the user is browsing that project's own detail page — tasks completed
+// from Schedule or the Tasks section need this instead.
+function _projForLinkedTask(task) {
+    if (task && task.linkedId) {
+        const arrKey = task.linkedType === 'bug' ? 'bugs' : 'features';
+        const found = (projectsData.projects || []).find(p => (p[arrKey] || []).some(x => x.id === task.linkedId));
+        if (found) return found;
+    }
+    // Already-shipped task: the feature/bug is gone from its array, but the
+    // changelog entry it created still points back to the right project.
+    if (task && task.loggedChangeId) {
+        const found = (projectsData.projects || []).find(p => (p.changelog || []).some(c => c.id === task.loggedChangeId));
+        if (found) return found;
+    }
+    return _projGet();
 }
 
 // ── Navigation helpers
